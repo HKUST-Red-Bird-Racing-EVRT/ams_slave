@@ -1,7 +1,6 @@
 #ifndef BQ76940_HPP
 #define BQ76940_HPP
 
-#include "Registers.hpp"
 #include "AmsState.hpp"
 #include "I2C.hpp"
 
