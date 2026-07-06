@@ -1,24 +1,4 @@
-#include "ADCCalibration.hpp"
-#include "AmsState.hpp"
-#include "Registers.hpp"
-
-uint16_t Bq76940AdcCalibration::ADCGain() const // microvolts
-{
-    return 365 + static_cast<uint16_t>(getCombinedGain());
-}
-
-int8_t Bq76940AdcCalibration::ADCOffset() const // millivolts
-{
-    uint8_t offset_raw = getSignedOffset();
-    if (offset_raw >= 0x80)
-    {
-        return static_cast<int8_t>(offset_raw) - 256;
-    }
-    else
-    {
-        return static_cast<int8_t>(offset_raw);
-    }
-}
+#include "RegistersADC.hpp"
 
 /*
 To calculate the correct OV_TRIP and UV_TRIP register values for a device, use the following procedure:
@@ -37,7 +17,11 @@ and removing the upper 2 MSB.
 constexpr uint16_t VOLTAGE_OV = 4200; // millivolts
 constexpr uint16_t VOLTAGE_UV = 3500; // millivolts
 
-constexpr uint16_t ADCGAIN = Bq76940AdcCalibration::ADCGain() const;
-constexpr int8_t ADCOFFSET = Bq76940AdcCalibration::ADCOffset() const;
+const uint16_t ADC_GAIN = 365 + static_cast<uint16_t>(ADC_getCombinedGain());
+const int8_t ADC_OFFSET = ADC_getOffset();
 
-constexpr uint16_t OV_TRIP_FULL = 
+const uint16_t OV_TRIP_THRESHOLD_FULL = ((VOLTAGE_OV - ADC_OFFSET) * 1000) / ADC_GAIN;
+const uint16_t UV_TRIP_THRESHOLD_FULL = ((VOLTAGE_UV - ADC_OFFSET) * 1000) / ADC_GAIN;
+
+const uint8_t OV_TRIP_THRESHOLD = static_cast<uint8_t>((OV_TRIP_THRESHOLD_FULL >> 4) & 0x3F);
+const uint8_t UV_TRIP_THRESHOLD = static_cast<uint8_t>((UV_TRIP_THRESHOLD_FULL >> 4) & 0x3F);
