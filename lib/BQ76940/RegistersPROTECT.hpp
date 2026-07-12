@@ -18,9 +18,9 @@
      * @brief Bits 7-6: Undervoltage Delay Configuration (UV_D1, UV_D0).
      * * Controls the qualification time filter window for cell undervoltage.
      * - 00 = 1 second
-     * - 01 = 2 seconds
-     * - 10 = 4 seconds
-     * - 11 = 8 seconds
+     * - 01 = 4 seconds
+     * - 10 = 8 seconds
+     * - 11 = 16 seconds
      */
     UV_D1 = 1 << 7,
     UV_D0 = 1 << 6,
@@ -37,7 +37,7 @@
     OV_D0 = 1 << 4
 };
 
-extern Register PROTECT3 = Register(static_cast<uint8_t>(RegisterAddress::PROTECT3), 0x00);
+extern Register PROTECT3 = Register(RegisterAddress::PROTECT3, 0x00);
 
 uint8_t PROTECT3_getUVDelayCode();
 uint8_t PROTECT3_getOVDelayCode();

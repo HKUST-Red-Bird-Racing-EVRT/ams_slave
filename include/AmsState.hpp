@@ -4,8 +4,8 @@
 #include "FaultFlags.hpp"
 #include <stdint.h>
 
-constexpr uint16_t TEMPERATURE_THRESHOLD = 5000; // millidegrees Celsius
-
+const uint8_t NUM_VC = 14; /**< Number of cells monitored by this AMS slave node. */
+const uint8_t NUM_TS = 5; /**< Number of temperature sensors monitored by this AMS slave node. */
 
 /**
  * @brief Represents the local state of one AMS slave node.
@@ -22,14 +22,16 @@ constexpr uint16_t TEMPERATURE_THRESHOLD = 5000; // millidegrees Celsius
 
 struct AmsState
 {
-    uint16_t cell_voltages[14];   /**< Cell voltage readings for the cells monitored by this slave. */
+    uint16_t cell_voltages[NUM_VC];   /**< Cell voltage readings for the cells monitored by this slave. */
     uint32_t timestamp;              /**< Timestamp of the last valid message received from this slave. */
-    uint16_t temperatures[5]; /**< Temperature readings from local thermistors. */
+    uint16_t temperatures[NUM_TS]; /**< Temperature readings from local thermistors. */
 
     FaultFlags fault_flags;   /**< Fault and status bits such as overvoltage, undervoltage, or sensor faults. */
 
     uint8_t node_id;         /**< Identifier for this slave node on the AMS network. */
     uint8_t packet_counter;  /**< Counter for received or transmitted communication packets. */
+
+    AmsState &ams_state;
 
     void Check();
 };

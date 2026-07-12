@@ -1,7 +1,6 @@
 #ifndef FAULT_FLAGS_HPP
 #define FAULT_FLAGS_HPP
 
-#include "Registers.hpp"
 #include <stdint.h>
 
 /*  1 byte represents fault status, 
@@ -32,28 +31,28 @@ class FaultFlags
     
         FaultFlags() : flags(0) {}
 
-        bool getOverallFault() const { return flags & OVERALL; };
-        void setOverallFault() { flags |= OVERALL; };
-        void clearOverallFault() { flags &= ~OVERALL; };
+        bool getOverallFault() const;
+        void setOverallFault();
+        void clearOverallFault();
 
-        bool getOvervoltageFault() const { return flags & OVERVOLTAGE; };
-        void setOvervoltageFault() { flags |= OVERVOLTAGE; };
-        void clearOvervoltageFault() { flags &= ~OVERVOLTAGE; };
+        bool getOvervoltageFault() const;
+        void setOvervoltageFault();
+        void clearOvervoltageFault();
 
-        bool getUndervoltageFault() const { return flags & UNDERVOLTAGE; };
-        void setUndervoltageFault() { flags |= UNDERVOLTAGE; };
-        void clearUndervoltageFault() { flags &= ~UNDERVOLTAGE; };
+        bool getUndervoltageFault() const;
+        void setUndervoltageFault();
+        void clearUndervoltageFault();
 
-        bool getOvertemperatureFault() const { return flags & OVERTEMPERATURE; };
-        void setOvertemperatureFault() { flags |= OVERTEMPERATURE; };
-        void clearOvertemperatureFault() { flags &= ~OVERTEMPERATURE; };
+        bool getOvertemperatureFault() const;
+        void setOvertemperatureFault();
+        void clearOvertemperatureFault();
 
-        bool getUndertemperatureFault() const { return flags & UNDERTEMPERATURE; };
-        void setUndertemperatureFault() { flags |= UNDERTEMPERATURE; };
-        void clearUndertemperatureFault() { flags &= ~UNDERTEMPERATURE; };
+        bool getUndertemperatureFault() const;
+        void setUndertemperatureFault();
+        void clearUndertemperatureFault();
 
-        bool getI2CTimeoutFault() const { return flags & I2C_TIMEOUT; };
-        void setI2CTimeoutFault() { flags |= I2C_TIMEOUT; };
-        void clearI2CTimeoutFault() { flags &= ~I2C_TIMEOUT; };
+        bool getI2CTimeoutFault() const;
+        void setI2CTimeoutFault();
+        void clearI2CTimeoutFault();
 };
 #endif  // FAULT_FLAGS_HPP
