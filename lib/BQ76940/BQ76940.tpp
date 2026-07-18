@@ -1,44 +1,15 @@
 #include "BQ76940.hpp"
-#include "AmsState.hpp"
-#include "I2C.hpp"
-#include "RegistersSYS.hpp"
-#include "RegistersVC.hpp"
-#include "RegistersTS.hpp"
-#include <Arduino.h>
-#include <stdint.h>
-
-void BQ76940::setSHIPMode()
+template <uint16_t BITRATE_KBPS, uint8_t PRIORITY_SIZE, uint8_t RECURRING_SIZE, uint8_t WATCHDOG_MAX_COUNT>
+constexpr BQ76940<BITRATE_KBPS, PRIORITY_SIZE, RECURRING_SIZE, WATCHDOG_MAX_COUNT>::BQ76940(AmsState &ams_state_, I2C<BITRATE_KBPS, PRIORITY_SIZE, RECURRING_SIZE, WATCHDOG_MAX_COUNT> &i2c_)
+    : ams_state(ams_state_),
+      i2c(i2c_),
+      adc_gain(adc_gain_),
+      adc_offset(adc_offset_)
 {
-
-    if (SYS_CTRL1_getShipModeEnabled())
-    {
-        current_mode = FunctionalMode::SHIP;
-    }
-    else
-    {
-        current_mode = FunctionalMode::NORMAL;
-    }
 }
 
-void BQ76940::setNORMALMode()
-{
-    if (TSENSOR_getVoltage(0) >= VOLTAGE_BOOT)
-    {
-        if (booton_timestamp == 0)
-        {
-            booton_timestamp = millis();
-        }
-        else
-        {
-            if (millis() - booton_timestamp >= TIME_BOOT)
-            {
-                current_mode = FunctionalMode::NORMAL;
-            }
-        }
-    }
-}
-
-void BQ76940::readVoltage()
+template <uint16_t BITRATE_KBPS, uint8_t PRIORITY_SIZE, uint8_t RECURRING_SIZE, uint8_t WATCHDOG_MAX_COUNT>
+void BQ76940<BITRATE_KBPS, PRIORITY_SIZE, RECURRING_SIZE, WATCHDOG_MAX_COUNT>::readVoltage()
 {
     if (i2c.pushRecurring(voltage_write_transaction))
     {

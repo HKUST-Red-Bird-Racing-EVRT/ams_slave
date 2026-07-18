@@ -4,9 +4,9 @@
 #include "RegistersClass.hpp"
 #include <stdint.h>
 
-extern Register ADCGAIN1 = Register(RegisterAddress::ADCGAIN1, 0x00);
-extern Register ADCOFFSET = Register(RegisterAddress::ADCOFFSET, 0x00);
-extern Register ADCGAIN2 = Register(RegisterAddress::ADCGAIN2, 0x00);
+inline Register ADCGAIN1 = Register(RegisterAddress::ADCGAIN1, 0x00);
+inline Register ADCOFFSET = Register(RegisterAddress::ADCOFFSET, 0x00);
+inline Register ADCGAIN2 = Register(RegisterAddress::ADCGAIN2, 0x00);
 
 #define ADCGAIN1_MASK 0x0C
 #define ADCGAIN2_MASK 0xE0

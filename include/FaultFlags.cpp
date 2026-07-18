@@ -12,7 +12,10 @@ void FaultFlags::setOverallFault()
 
 void FaultFlags::clearOverallFault()
 {
-    flags &= ~OVERALL;
+    if (!getOvervoltageFault() && !getUndervoltageFault() && !getOvertemperatureFault() && !getUndertemperatureFault() && !getI2CTimeoutFault())
+    {
+        flags &= ~OVERALL;
+    }
 }
 
 

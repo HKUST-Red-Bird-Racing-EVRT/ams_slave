@@ -1,5 +1,5 @@
 #include "RegistersOV_UV_TRIP.hpp"
-#include "VoltageThreshold.hpp"
+#include "Voltage.hpp"
 
 void loadOVTrip()
 {

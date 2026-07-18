@@ -21,16 +21,20 @@ and removing the upper 2 MSB.
 5. Write OV_TRIP and UV_TRIP to their corresponding registers.
 */
 
+constexpr uint16_t VOLTAGE_OT = 5000; // millidegrees Celsius (millivolts)
+constexpr uint16_t VOLTAGE_UT = 0;    // millidegrees Celsius (millivolts)
+
 constexpr uint16_t VOLTAGE_OV = 4200; // millivolts
 constexpr uint16_t VOLTAGE_UV = 3500; // millivolts
 
-constexpr uint16_t VOLTAGE_BOOT = 1000; // millivolts
+constexpr uint16_t VOLTAGE_BOOT = 1000; // millivolts (temperature)
+constexpr uint16_t VOLTAGE_PORA = 5000; // millivolts (voltage)
 constexpr uint16_t VOLTAGE_SHUT = 3600; // millivolts
 
 constexpr uint16_t TIME_BOOT = 3; // milliseconds
 
-const uint16_t ADC_GAIN = 365 + static_cast<uint16_t>(ADC_getCombinedGain());
-const int8_t ADC_OFFSET = ADC_getOffset();
+uint16_t ADC_GAIN = 365 + static_cast<uint16_t>(ADC_getCombinedGain());
+int8_t ADC_OFFSET = ADC_getOffset();
 
 const uint16_t OV_TRIP_THRESHOLD_FULL = ((VOLTAGE_OV - ADC_OFFSET) * 1000) / ADC_GAIN;
 const uint16_t UV_TRIP_THRESHOLD_FULL = ((VOLTAGE_UV - ADC_OFFSET) * 1000) / ADC_GAIN;
@@ -39,7 +43,5 @@ const uint8_t OV_TRIP_THRESHOLD = static_cast<uint8_t>((OV_TRIP_THRESHOLD_FULL >
 const uint8_t UV_TRIP_THRESHOLD = static_cast<uint8_t>((UV_TRIP_THRESHOLD_FULL >> 4) & 0x3F);
 
 const uint16_t VBAT_THRESHOLD = 4 * ADC_GAIN * BAT_getVoltage() / 1000 + NUM_VC * ADC_OFFSET; // millivolts
-
-void checkAndSetVoltageFaults(AmsState &state);
 
 #endif // VOLTAGEHPP

@@ -81,7 +81,7 @@ enum class BitSYS_STAT : uint8_t
     OCD = 1 << 0
 };
 
-extern Register SYS_STAT = Register(RegisterAddress::SYS_STAT, 0x00);
+inline Register SYS_STAT = Register(RegisterAddress::SYS_STAT, 0x00);
 
 void SYS_STAT_setCCReady(bool value);
 bool SYS_STAT_getCCReady();
@@ -153,12 +153,12 @@ enum class BitSYS_CTRL1 : uint8_t
     SHUT_B = 1 << 0
 };
 
-extern Register SYS_CTRL1 = Register(RegisterAddress::SYS_CTRL1, 0x00);
+inline Register SYS_CTRL1 = Register(RegisterAddress::SYS_CTRL1, 0x00);
 
 bool SYS_CTRL1_getLoadPresent();
 bool SYS_CTRL1_getADCEnabled();
 bool SYS_CTRL1_getExternalTempSel();
-bool SYS_CTRL1_getShipModeEnabled();
-
+bool SYS_CTRL1_getShutA();
+bool SYS_CTRL1_getShutB();
 
 #endif // REGISTERSSYS_HPP

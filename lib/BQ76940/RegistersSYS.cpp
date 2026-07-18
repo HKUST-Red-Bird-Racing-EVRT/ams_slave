@@ -150,19 +150,12 @@ bool SYS_CTRL1_getExternalTempSel(){
     return (SYS_CTRL1.getRawData() & static_cast<uint8_t>(BitSYS_CTRL1::TEMP_SEL)) != 0;
 }
 
-bool SYS_CTRL1_getShipModeEnabled()
+bool SYS_CTRL1_getShutA()
 {
-    if ((SYS_CTRL1.getRawData() & static_cast<uint8_t>(BitSYS_CTRL1::SHUT_A)) != 0 &&
-           (SYS_CTRL1.getRawData() & static_cast<uint8_t>(BitSYS_CTRL1::SHUT_B)) == 0)
-    {
-        return true;
-    }
+    return (SYS_CTRL1.getRawData() & static_cast<uint8_t>(BitSYS_CTRL1::SHUT_A)) != 0;
+}
 
-    if ((SYS_CTRL1.getRawData() & static_cast<uint8_t>(BitSYS_CTRL1::SHUT_A)) == 0 &&
-           (SYS_CTRL1.getRawData() & static_cast<uint8_t>(BitSYS_CTRL1::SHUT_B)) != 0)
-    {
-        return true;
-    }
-
-    return false;
+bool SYS_CTRL1_getShutB()
+{
+    return (SYS_CTRL1.getRawData() & static_cast<uint8_t>(BitSYS_CTRL1::SHUT_B)) != 0;
 }

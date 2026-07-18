@@ -37,7 +37,7 @@
     OV_D0 = 1 << 4
 };
 
-extern Register PROTECT3 = Register(RegisterAddress::PROTECT3, 0x00);
+inline Register PROTECT3 = Register(RegisterAddress::PROTECT3, 0x00);
 
 uint8_t PROTECT3_getUVDelayCode();
 uint8_t PROTECT3_getOVDelayCode();

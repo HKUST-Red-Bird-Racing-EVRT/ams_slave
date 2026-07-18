@@ -19,13 +19,5 @@ uint8_t ADC_getCombinedGain()    // microvolts
 
 int8_t ADC_getOffset()   // millivolts
 {
-    uint8_t offset_raw = ADCOFFSET.getRawData();
-    if (offset_raw >= 0x80)
-    {
-        return static_cast<int8_t>(offset_raw) - 256;
-    }
-    else
-    {
-        return static_cast<int8_t>(offset_raw);
-    }
+    return static_cast<int8_t>(ADCOFFSET.getRawData());
 }

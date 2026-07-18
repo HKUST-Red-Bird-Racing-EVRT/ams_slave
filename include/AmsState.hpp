@@ -4,8 +4,8 @@
 #include "FaultFlags.hpp"
 #include <stdint.h>
 
-const uint8_t NUM_VC = 14; /**< Number of cells monitored by this AMS slave node. */
-const uint8_t NUM_TS = 5; /**< Number of temperature sensors monitored by this AMS slave node. */
+constexpr uint8_t NUM_VC = 14; /**< Number of cells monitored by this AMS slave node. */
+constexpr uint8_t NUM_TS = 5; /**< Number of temperature sensors monitored by this AMS slave node. */
 
 /**
  * @brief Represents the local state of one AMS slave node.
@@ -31,9 +31,8 @@ struct AmsState
     uint8_t node_id;         /**< Identifier for this slave node on the AMS network. */
     uint8_t packet_counter;  /**< Counter for received or transmitted communication packets. */
 
-    AmsState &ams_state;
-
-    void Check();
+    // void checkVoltage();
+    // void checkTemperature();
 };
 
 #endif // AMSSTATE_HPP
