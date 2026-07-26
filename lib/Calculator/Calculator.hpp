@@ -7,26 +7,33 @@
 class Calculator
 {
     public:
-        uint16_t VOLTAGE_OT = 0;
-        uint16_t VOLTAGE_UT = 0;
-        uint16_t VOLTAGE_OV = 0;
-        uint16_t VOLTAGE_UV = 0;
+        uint16_t VOLTAGE_OT = 900;  //	Overtemperature Voltage (millivolts)
+        uint16_t VOLTAGE_UT = 100;  //	Undertemperature Voltage (millivolts)
+        uint16_t VOLTAGE_OV = 4200; //	OverVoltage Voltage (millivolts)
+        uint16_t VOLTAGE_UV = 3500; //	UnderVoltage Voltage (millivolts)
+        uint16_t VOLTAGE_MIN;       //  Min Voltage (millivolts)
+
         constexpr Calculator(AmsState &ams_state_);
         Calculator() = delete;
         void setAdcGain(uint8_t &byte1, uint8_t &byte2);
         void setAdcOffset(uint8_t &byte1);
-        void setVoltageThreshold(uint16_t voltage_ot, uint16_t voltage_ut, uint16_t voltage_ov, uint16_t voltage_uv);
+        //  void setRegisterVoltageThreshold(uint16_t voltage_ot, uint16_t voltage_ut, uint16_t voltage_ov, uint16_t voltage_uv);
+        uint16_t getRealVoltage(uint16_t &data);
         bool isOverTemperature(uint16_t &data);
         bool isUnderTemperature(uint16_t &data);
         bool isOverVoltage(uint16_t &data);
         bool isUnderVoltage(uint16_t &data);
         bool isCellBalActivated(uint8_t &byte);
+        void setVoltageMin();
+        uint16_t getCellBalFlags();
 
     private:
         AmsState &ams_state;
         static constexpr uint16_t VOLTAGE_BOOT = 1000; // millivolts (temperature)
         static constexpr uint16_t VOLTAGE_PORA = 5000; // millivolts (voltage)
         static constexpr uint16_t VOLTAGE_SHUT = 3600; // millivolts
+        static constexpr uint16_t VOLTAGE_START = 3800; //  Minimum Voltage for Cell Balancing
+        static constexpr uint16_t VOLTAGE_DELTA = 30;
 
         static constexpr uint16_t TIME_BOOT = 3; // milliseconds
 

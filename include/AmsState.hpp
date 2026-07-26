@@ -30,9 +30,6 @@ struct AmsState
 
     uint8_t node_id;         /**< Identifier for this slave node on the AMS network. */
     uint8_t packet_counter;  /**< Counter for received or transmitted communication packets. */
-
-    // void checkVoltage();
-    // void checkTemperature();
 };
 
 #endif // AMSSTATE_HPP

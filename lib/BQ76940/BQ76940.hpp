@@ -2,6 +2,7 @@
 #define BQ76940_HPP
 
 #include "AmsState.hpp"
+#include "Calculator.hpp"
 #include "I2C.hpp"
 #include <Arduino.h>
 #include <stdint.h>
@@ -10,13 +11,22 @@ template <uint16_t BITRATE_KBPS, uint8_t PRIORITY_SIZE, uint8_t RECURRING_SIZE, 
 class BQ76940
 {
     public:
-        constexpr BQ76940(AmsState &ams_state_, I2C<BITRATE_KBPS, PRIORITY_SIZE, RECURRING_SIZE, WATCHDOG_MAX_COUNT> &i2c_);
+        enum class CellBalState : uint8_t
+        {
+            ODD,
+            EVEN
+        };
+
+        CellBalState cellbal_state = CellBalState::ODD;
+
+        constexpr BQ76940(AmsState &ams_state_, I2C<BITRATE_KBPS, PRIORITY_SIZE, RECURRING_SIZE, WATCHDOG_MAX_COUNT> &i2c_, Calculator &calculator_);
         BQ76940() = delete; // Prevent default construction without AmsState reference
         void readVoltage();
 
     private:
         AmsState &ams_state;
         I2C<BITRATE_KBPS, PRIORITY_SIZE, RECURRING_SIZE, WATCHDOG_MAX_COUNT> &i2c;
+        Calculator &calculator;
         static constexpr uint8_t BQ76940_I2C_ADDRESS = 0x08; /**< I2C address for the BQ76940 device. */
         static constexpr uint8_t BQ76940_VOLTAGE_REGISTER = 0x0C; /**< Register address for reading cell voltages. */
         static constexpr uint8_t VOLTAGE_READ_COUNT = 30; /**< Number of bytes to read voltage data for. */

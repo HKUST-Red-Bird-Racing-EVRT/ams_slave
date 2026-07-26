@@ -1,8 +1,12 @@
 #include "BQ76940.hpp"
 template <uint16_t BITRATE_KBPS, uint8_t PRIORITY_SIZE, uint8_t RECURRING_SIZE, uint8_t WATCHDOG_MAX_COUNT>
-constexpr BQ76940<BITRATE_KBPS, PRIORITY_SIZE, RECURRING_SIZE, WATCHDOG_MAX_COUNT>::BQ76940(AmsState &ams_state_, I2C<BITRATE_KBPS, PRIORITY_SIZE, RECURRING_SIZE, WATCHDOG_MAX_COUNT> &i2c_)
+constexpr BQ76940<BITRATE_KBPS, PRIORITY_SIZE, RECURRING_SIZE, WATCHDOG_MAX_COUNT>::BQ76940(
+    AmsState &ams_state_,
+    I2C<BITRATE_KBPS, PRIORITY_SIZE, RECURRING_SIZE, WATCHDOG_MAX_COUNT> &i2c_,
+    Calculator &calculator_)
     : ams_state(ams_state_),
-      i2c(i2c_)
+      i2c(i2c_),
+      calculator(calculator_)
 {
 }
 
@@ -23,14 +27,16 @@ void BQ76940<BITRATE_KBPS, PRIORITY_SIZE, RECURRING_SIZE, WATCHDOG_MAX_COUNT>::r
                 {
                     uint8_t high_byte = voltage_buffer[i * 2];
                     uint8_t low_byte = voltage_buffer[i * 2 + 1];
-                    ams_state.cell_voltages[i] = ((static_cast<uint16_t>(high_byte) & 0x3F) << 8) | low_byte;
+                    uint16_t voltage = ((static_cast<uint16_t>(high_byte) & 0x3F) << 8) | low_byte;
+                    ams_state.cell_voltages[i] = calculator.getRealVoltage(voltage);
                 }
 
                 else
                 {
                     uint8_t high_byte = voltage_buffer[(i + 1) * 2];
                     uint8_t low_byte = voltage_buffer[(i + 1) * 2 + 1];
-                    ams_state.cell_voltages[i] = ((static_cast<uint16_t>(high_byte) & 0x3F) << 8) | low_byte;
+                    uint16_t voltage = ((static_cast<uint16_t>(high_byte) & 0x3F) << 8) | low_byte;
+                    ams_state.cell_voltages[i] = calculator.getRealVoltage(voltage);
                 }
             }
         }
