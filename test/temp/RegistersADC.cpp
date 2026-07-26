@@ -11,8 +11,8 @@
 
 uint8_t ADC_getCombinedGain()    // microvolts
 {
-    uint8_t upper_bits = (ADCGAIN1.getRawData() & ADCGAIN1_MASK) << 1; 
-    uint8_t lower_bits = (ADCGAIN2.getRawData() & ADCGAIN2_MASK) >> 5; 
+    uint8_t upper_bits = (ADCGAIN1.getRawData() & REGISTER_ADCGAIN1_MASK) << 1; 
+    uint8_t lower_bits = (ADCGAIN2.getRawData() & REGISTER_ADCGAIN2_MASK) >> 5; 
     return (upper_bits | lower_bits);
 }
 

@@ -31,6 +31,9 @@
 #define NTC4 PIN_PC2
 #define NTC5 PIN_PC3
 
+//  MCP2515 Address
+#define MCP2515_ADDRESS 0x201
+
 //  IC Address
 #define IC_ADDRESS 0x08
 

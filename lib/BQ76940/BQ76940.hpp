@@ -3,8 +3,6 @@
 
 #include "AmsState.hpp"
 #include "I2C.hpp"
-#include "RegistersClass.hpp"
-#include "RegistersSYS.hpp"
 #include <Arduino.h>
 #include <stdint.h>
 
@@ -12,7 +10,7 @@ template <uint16_t BITRATE_KBPS, uint8_t PRIORITY_SIZE, uint8_t RECURRING_SIZE, 
 class BQ76940
 {
     public:
-        constexpr BQ76940(AmsState &ams_state_, I2C<BITRATE_KBPS, PRIORITY_SIZE, RECURRING_SIZE, WATCHDOG_MAX_COUNT> &i2c_, const int adc_gain_, const int adc_offset_);
+        constexpr BQ76940(AmsState &ams_state_, I2C<BITRATE_KBPS, PRIORITY_SIZE, RECURRING_SIZE, WATCHDOG_MAX_COUNT> &i2c_);
         BQ76940() = delete; // Prevent default construction without AmsState reference
         void readVoltage();
 
@@ -27,9 +25,6 @@ class BQ76940
 
         const I2cTransaction voltage_write_transaction = I2cTransaction::makeChainedWrite(BQ76940_I2C_ADDRESS, 1, &BQ76940_VOLTAGE_REGISTER);
         const I2cTransaction voltage_read_transaction = I2cTransaction::makeRead(BQ76940_I2C_ADDRESS, VOLTAGE_READ_COUNT, voltage_buffer);
-
-        const adc_gain;
-        const add_offset;
 };
 
 #include "BQ76940.tpp"

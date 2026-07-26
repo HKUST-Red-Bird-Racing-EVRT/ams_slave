@@ -85,6 +85,7 @@ public:
     constexpr bool pushRecurring(const I2cTransaction &new_queuer) __attribute__((optimize("O3")));
     void pump() __attribute__((aligned(2)));
     inline void handleIsr() __attribute__((aligned(2)));
+    inline bool priority_empty();
 
 private:
     // =========================================================================

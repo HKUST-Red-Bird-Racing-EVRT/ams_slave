@@ -30,6 +30,7 @@ class FaultFlags
     public:
     
         FaultFlags() : flags(0) {}
+        uint8_t getFlags() const {return flags;};
 
         bool getOverallFault() const;
         void setOverallFault();

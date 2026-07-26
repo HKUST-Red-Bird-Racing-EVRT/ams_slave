@@ -2,9 +2,7 @@
 template <uint16_t BITRATE_KBPS, uint8_t PRIORITY_SIZE, uint8_t RECURRING_SIZE, uint8_t WATCHDOG_MAX_COUNT>
 constexpr BQ76940<BITRATE_KBPS, PRIORITY_SIZE, RECURRING_SIZE, WATCHDOG_MAX_COUNT>::BQ76940(AmsState &ams_state_, I2C<BITRATE_KBPS, PRIORITY_SIZE, RECURRING_SIZE, WATCHDOG_MAX_COUNT> &i2c_)
     : ams_state(ams_state_),
-      i2c(i2c_),
-      adc_gain(adc_gain_),
-      adc_offset(adc_offset_)
+      i2c(i2c_)
 {
 }
 
