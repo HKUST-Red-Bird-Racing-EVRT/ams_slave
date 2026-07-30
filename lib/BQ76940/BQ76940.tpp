@@ -42,3 +42,20 @@ void BQ76940<BITRATE_KBPS, PRIORITY_SIZE, RECURRING_SIZE, WATCHDOG_MAX_COUNT>::r
         }
     }
 }
+
+template <uint16_t BITRATE_KBPS, uint8_t PRIORITY_SIZE, uint8_t RECURRING_SIZE, uint8_t WATCHDOG_MAX_COUNT>
+uint8_t BQ76940<BITRATE_KBPS, PRIORITY_SIZE, RECURRING_SIZE, WATCHDOG_MAX_COUNT>::getRegisterReadData(uint8_t address)
+{
+    uint8_t buffer[2] = {0};
+
+	const uint8_t send_addess[1] = {address};
+
+	while (!i2c.pushPriority(I2cTransaction::makeChainedWrite(IC_ADDRESS, 1, send_addess)))
+		;
+
+	while (!i2c.pushPriority(I2cTransaction::makeRead(IC_ADDRESS, 2, buffer)))
+		;
+	i2c.pump();
+
+    return buffer[1];
+}

@@ -77,7 +77,7 @@ void Calculator::setVoltageMin()
     VOLTAGE_MIN = min_voltage;
 }
 
-uint16_t Calculator::getCellBalFlags()
+void Calculator::setCellBalFlags()
 {
     uint16_t flags = 0;
 
@@ -89,5 +89,5 @@ uint16_t Calculator::getCellBalFlags()
         }
     }
 
-    return flags;
+    ams_state.cellbal_flags = flags;
 }

@@ -26,6 +26,7 @@ struct AmsState
     uint32_t timestamp;              /**< Timestamp of the last valid message received from this slave. */
     uint16_t temperatures[NUM_TS]; /**< Temperature readings from local thermistors. */
 
+    uint16_t cellbal_flags = 0x00;
     FaultFlags fault_flags;   /**< Fault and status bits such as overvoltage, undervoltage, or sensor faults. */
 
     uint8_t node_id;         /**< Identifier for this slave node on the AMS network. */

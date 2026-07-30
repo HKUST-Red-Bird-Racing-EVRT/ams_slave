@@ -11,17 +11,10 @@ template <uint16_t BITRATE_KBPS, uint8_t PRIORITY_SIZE, uint8_t RECURRING_SIZE, 
 class BQ76940
 {
     public:
-        enum class CellBalState : uint8_t
-        {
-            ODD,
-            EVEN
-        };
-
-        CellBalState cellbal_state = CellBalState::ODD;
-
         constexpr BQ76940(AmsState &ams_state_, I2C<BITRATE_KBPS, PRIORITY_SIZE, RECURRING_SIZE, WATCHDOG_MAX_COUNT> &i2c_, Calculator &calculator_);
         BQ76940() = delete; // Prevent default construction without AmsState reference
         void readVoltage();
+        uint8_t getRegisterReadData(uint8_t address);
 
     private:
         AmsState &ams_state;

@@ -21,12 +21,12 @@
 #define I2C_WATCHDOG_MAX_COUNT 10
 
 AmsState ams_state;
-
 MCP2515 mcp2515(CS);
 // I2C<100, 4, 4, 10> i2c;
 I2C<I2C_BITRATE_KBPS, I2C_PRIORITY_SIZE, I2C_RECURRING_SIZE, I2C_WATCHDOG_MAX_COUNT> i2c;
 Calculator calculator(ams_state);
-CanHelper can_helper(ams_state);
+CanHelper can_helper(ams_state, mcp2515);
+BQ76940<I2C_BITRATE_KBPS, I2C_PRIORITY_SIZE, I2C_RECURRING_SIZE, I2C_WATCHDOG_MAX_COUNT> bms(ams_state, i2c, calculator);
 
 void setup()
 {
@@ -55,59 +55,14 @@ void setup()
 	bool jp4 = digitalRead(JP4);
 	can_helper.setNodeID(jp1, jp2, jp3, jp4);
 
-	//	Read data from Register ADCGAIN1
-	uint8_t adc_gain1_buffer[2] = {0};
+	//	Read Data from Register ADCGAIN1, ADCGAIN2, ADCOFFSET
+	uint8_t adc_gain1_data = bms.getRegisterReadData(REGISTER_ADCGAIN1_ADDRESS);
+	uint8_t adc_gain2_data = bms.getRegisterReadData(REGISTER_ADCGAIN2_ADDRESS);
+	uint8_t adc_offset_data = bms.getRegisterReadData(REGISTER_ADCOFFSET_ADDRESS);
 
-	const uint8_t send_adc_gain1[1] = {REGISTER_ADCGAIN1_ADDRESS};
-
-	while (!i2c.pushPriority(I2cTransaction::makeChainedWrite(IC_ADDRESS, 1, send_adc_gain1)))
-		;
-
-	while (!i2c.pushPriority(I2cTransaction::makeRead(IC_ADDRESS, 2, adc_gain1_buffer)))
-		;
-	i2c.pump();
-
-	//	Read Data from Register ADCGAIN2
-	uint8_t adc_gain2_buffer[2] = {0};
-
-	const uint8_t send_adc_gain2[1] = {REGISTER_ADCGAIN2_ADDRESS};
-
-	while (!i2c.pushRecurring(I2cTransaction::makeChainedWrite(IC_ADDRESS, 1, send_adc_gain2)))
-		;
-
-	while (!i2c.pushRecurring(I2cTransaction::makeRead(IC_ADDRESS, 2, adc_gain2_buffer)))
-		;
-	i2c.pump();
-
-	//	Read Data from Register ADC_OFFSET
-	uint8_t adc_offset_buffer[2] = {0};
-
-	const uint8_t send_adc_offset[1] = {REGISTER_ADCOFFSET_ADDRESS};
-
-	while (!i2c.pushRecurring(I2cTransaction::makeChainedWrite(IC_ADDRESS, 1, send_adc_offset)))
-		;
-
-	while (!i2c.pushRecurring(I2cTransaction::makeRead(IC_ADDRESS, 2, adc_offset_buffer)))
-		;
-	i2c.pump();
-
-	//	Read Data from Register PROTECT3
-	uint8_t protect3_buffer[2] = {0};
-
-	const uint8_t send_protect3[1] = {REGISTER_PROTECT3_ADDRESS};
-
-	while (!i2c.pushRecurring(I2cTransaction::makeChainedWrite(IC_ADDRESS, 1, send_protect3)))
-		;
-
-	while (!i2c.pushRecurring(I2cTransaction::makeRead(IC_ADDRESS, 2, protect3_buffer)))
-		;
-	i2c.pump();
-
-	calculator.setAdcGain(adc_gain1_buffer[1], adc_gain2_buffer[1]);
-	calculator.setAdcOffset(adc_offset_buffer[1]);
+	calculator.setAdcGain(adc_gain1_data, adc_gain2_data);
+	calculator.setAdcOffset(adc_offset_data);
 }
-
-BQ76940<I2C_BITRATE_KBPS, I2C_PRIORITY_SIZE, I2C_RECURRING_SIZE, I2C_WATCHDOG_MAX_COUNT> bms(ams_state, i2c, calculator);
 
 void loop()
 {
@@ -115,58 +70,32 @@ void loop()
 	bms.readVoltage(); // updates timestamp if had read
 	calculator.setVoltageMin();
 
-	can_frame send_voltage_frame = {
-		can_helper.SLAVE_ADDRESS,
-		8,
-		ams_state.cell_voltages[0] & 0xFF,
-		(ams_state.cell_voltages[0] >> 8) & 0xFF,
-		ams_state.cell_voltages[1] & 0xFF,
-		(ams_state.cell_voltages[1] >> 8) & 0xFF,
-		ams_state.cell_voltages[2] & 0xFF,
-		(ams_state.cell_voltages[2] >> 8) & 0xFF,
-		ams_state.cell_voltages[3] & 0xFF,
-		(ams_state.cell_voltages[3] >> 8) & 0xFF,
-	};
-
-	mcp2515.sendMessage(&send_voltage_frame);
-
 	//	Read Data from Register SYS_CTRL2
-	uint8_t sys_ctrl2_buffer[2] = {0};
-
-	const uint8_t send_sys_ctrl2[1] = {REGISTER_SYS_CTRL2_ADDRESS};
-
-	while (!i2c.pushRecurring(I2cTransaction::makeChainedWrite(IC_ADDRESS, 1, send_sys_ctrl2)))
-		;
-
-	while (!i2c.pushRecurring(I2cTransaction::makeRead(IC_ADDRESS, 2, sys_ctrl2_buffer)))
-		;
-	i2c.pump();
+	uint8_t sys_ctrl2_data = bms.getRegisterReadData(REGISTER_SYS_CTRL2_ADDRESS);
 
 	//	Battery Charging / Idle
-	if (calculator.isCellBalActivated(sys_ctrl2_buffer[1]))
+	if (calculator.isCellBalActivated(sys_ctrl2_data))
 	{
-		/*
-
-		*/
+		calculator.setCellBalFlags();
 	}
 
 	//	Battery Discharging
 	else
 	{
+		ams_state.cellbal_flags = 0x00;
+
 		for (uint8_t index = 0; index < NUM_VC; ++index)
 		{
 			if (calculator.isOverVoltage(ams_state.cell_voltages[index]))
 			{
 				ams_state.fault_flags.setOvervoltageFault();
-				const can_frame send_frame = {can_helper.PANIC_ADDRESS, 1, ams_state.fault_flags.getFlags()};
-				mcp2515.sendMessage(&send_frame);
+				can_helper.sendPanic();
 				break;
 			}
 			else if (calculator.isUnderVoltage(ams_state.cell_voltages[index]))
 			{
 				ams_state.fault_flags.setUndervoltageFault();
-				const can_frame send_frame = {can_helper.PANIC_ADDRESS, 1, ams_state.fault_flags.getFlags()};
-				mcp2515.sendMessage(&send_frame);
+				can_helper.sendPanic();
 				break;
 			}
 		}
@@ -183,17 +112,21 @@ void loop()
 			if (calculator.isOverTemperature(ams_state.temperatures[index]))
 			{
 				ams_state.fault_flags.setOvertemperatureFault();
-				const can_frame send_frame = {can_helper.PANIC_ADDRESS, 1, ams_state.fault_flags.getFlags()};
-				mcp2515.sendMessage(&send_frame);
+				can_helper.sendPanic();
 				break;
 			}
 			else if (calculator.isUnderTemperature(ams_state.temperatures[index]))
 			{
 				ams_state.fault_flags.setUndertemperatureFault();
-				const can_frame send_frame = {can_helper.PANIC_ADDRESS, 1, ams_state.fault_flags.getFlags()};
-				mcp2515.sendMessage(&send_frame);
+				can_helper.sendPanic();
 				break;
 			}
 		}
+	}
+
+	//	Send Voltages
+	for (uint8_t index = 0; index < NUM_SLAVE_FRAME; ++index)
+	{
+		can_helper.sendVoltages(index);
 	}
 }

@@ -11,7 +11,7 @@ class Calculator
         uint16_t VOLTAGE_UT = 100;  //	Undertemperature Voltage (millivolts)
         uint16_t VOLTAGE_OV = 4200; //	OverVoltage Voltage (millivolts)
         uint16_t VOLTAGE_UV = 3500; //	UnderVoltage Voltage (millivolts)
-        uint16_t VOLTAGE_MIN;       //  Min Voltage (millivolts)
+        uint16_t VOLTAGE_MIN = 0;       //  Min Voltage (millivolts) Will be defined later
 
         constexpr Calculator(AmsState &ams_state_);
         Calculator() = delete;
@@ -25,7 +25,7 @@ class Calculator
         bool isUnderVoltage(uint16_t &data);
         bool isCellBalActivated(uint8_t &byte);
         void setVoltageMin();
-        uint16_t getCellBalFlags();
+        void setCellBalFlags();
 
     private:
         AmsState &ams_state;
