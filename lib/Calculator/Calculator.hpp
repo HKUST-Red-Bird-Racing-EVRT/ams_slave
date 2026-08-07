@@ -12,8 +12,11 @@ class Calculator
         uint16_t VOLTAGE_OV = 4200; //	OverVoltage Voltage (millivolts)
         uint16_t VOLTAGE_UV = 3500; //	UnderVoltage Voltage (millivolts)
         uint16_t VOLTAGE_MIN = 0;       //  Min Voltage (millivolts) Will be defined later
+        uint16_t VOLTAGE_BALANCE = 0;   //  Cell Balancing Voltage (millivolts) Will be defined later
 
-        constexpr Calculator(AmsState &ams_state_);
+        uint32_t TIME_CELLBAL = 30000; //  Cell Balancing Time (milliseconds)
+
+        Calculator(AmsState &ams_state_);
         Calculator() = delete;
         void setAdcGain(uint8_t &byte1, uint8_t &byte2);
         void setAdcOffset(uint8_t &byte1);
@@ -25,7 +28,8 @@ class Calculator
         bool isUnderVoltage(uint16_t &data);
         bool isCellBalActivated(uint8_t &byte);
         void setVoltageMin();
-        void setCellBalFlags();
+        void setCellBalFlagsOld();
+        void setCellBalFlags(uint16_t &data);
 
     private:
         AmsState &ams_state;

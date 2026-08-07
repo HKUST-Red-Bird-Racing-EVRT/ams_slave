@@ -1,6 +1,6 @@
 #include "Calculator.hpp"
 
-constexpr Calculator::Calculator(AmsState &ams_state_)
+Calculator::Calculator(AmsState &ams_state_)
     : ams_state(ams_state_)
 {
 }
@@ -77,7 +77,7 @@ void Calculator::setVoltageMin()
     VOLTAGE_MIN = min_voltage;
 }
 
-void Calculator::setCellBalFlags()
+void Calculator::setCellBalFlagsOld()
 {
     uint16_t flags = 0;
 
@@ -87,6 +87,45 @@ void Calculator::setCellBalFlags()
         {
             flags |= 1 << index;
         }
+    }
+
+    //  Odd: 0001 0101 0101 0101    0x1555
+    //  Even: 0100 1010 1010 1010   0x4AAA
+
+    if (!ams_state.cellbal_state)
+    {
+        flags &= 0x1555;
+    }
+    else
+    {
+        flags &= 0x4AAA;
+    }
+
+    ams_state.cellbal_flags = flags;
+}
+
+void Calculator::setCellBalFlags(uint16_t &data)
+{
+    uint16_t flags = 0;
+
+    for (uint8_t index = 0; index < NUM_VC; ++index)
+    {
+        if (ams_state.cell_voltages[index] >= data)
+        {
+            flags |= 1 << index;
+        }
+    }
+
+    //  Odd: 0001 0101 0101 0101    0x1555
+    //  Even: 0100 1010 1010 1010   0x4AAA
+
+    if (!ams_state.cellbal_state)
+    {
+        flags &= 0x1555;
+    }
+    else
+    {
+        flags &= 0x4AAA;
     }
 
     ams_state.cellbal_flags = flags;

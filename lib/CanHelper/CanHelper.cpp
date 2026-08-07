@@ -1,6 +1,6 @@
 #include "CanHelper.hpp"
 
-constexpr CanHelper::CanHelper(AmsState &ams_state_, MCP2515 &mcp2515_)
+CanHelper::CanHelper(AmsState &ams_state_, MCP2515 &mcp2515_)
     : ams_state(ams_state_),
       mcp2515(mcp2515_)
 {

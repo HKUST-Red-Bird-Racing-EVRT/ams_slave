@@ -23,9 +23,11 @@ constexpr uint8_t NUM_TS = 5; /**< Number of temperature sensors monitored by th
 struct AmsState
 {
     uint16_t cell_voltages[NUM_VC];   /**< Cell voltage readings for the cells monitored by this slave. */
-    uint32_t timestamp;              /**< Timestamp of the last valid message received from this slave. */
+    uint32_t message_timestamp = 0;       /**< Timestamp of the last valid message received from this slave. */
     uint16_t temperatures[NUM_TS]; /**< Temperature readings from local thermistors. */
 
+    uint32_t cellbal_timestamp = 0; /**< Timestamp of the last cell balancing operation. */
+    bool cellbal_state = false;         /**< CellBal State: Odd: False, Even: True */
     uint16_t cellbal_flags = 0x00;
     FaultFlags fault_flags;   /**< Fault and status bits such as overvoltage, undervoltage, or sensor faults. */
 
