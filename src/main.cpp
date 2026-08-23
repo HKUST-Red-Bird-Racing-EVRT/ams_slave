@@ -30,7 +30,8 @@ CanHelper can_helper(ams_state, mcp2515);
 BQ76940<I2C_BITRATE_KBPS, I2C_PRIORITY_SIZE, I2C_RECURRING_SIZE, I2C_WATCHDOG_MAX_COUNT> bms(ams_state, i2c, calculator);
 
 uint32_t frame_counter = 0x420;
-can_frame frame = {frame_counter++, 1, {0X69}};
+can_frame test_frame = {frame_counter++, 1, {0X69}};
+can_frame rx_frame;
 
 ISR(TWI_vect)
 {
@@ -57,8 +58,8 @@ void setup()
 	pinMode(JP3, INPUT);
 	pinMode(JP4, INPUT);
 	
-	mcp2515.sendMessage(&frame); //420
-	frame = {frame_counter++, 1, {0X69}};
+	mcp2515.sendMessage(&test_frame); //420
+	test_frame = {frame_counter++, 1, {0X69}};
 
 	//	Set up Slave ID
 	bool jp1 = digitalRead(JP1);
@@ -67,22 +68,22 @@ void setup()
 	bool jp4 = digitalRead(JP4);
 
 	
-	mcp2515.sendMessage(&frame); //421
-	frame = {frame_counter++, 1, {0X69}};
+	mcp2515.sendMessage(&test_frame); //421
+	test_frame = {frame_counter++, 1, {0X69}};
 
 	can_helper.setNodeID(jp1, jp2, jp3, jp4);
 	
 	 //423
-	mcp2515.sendMessage(&frame); //422
-	frame = {frame_counter++, 1, {0X69}};
+	mcp2515.sendMessage(&test_frame); //422
+	test_frame = {frame_counter++, 1, {0X69}};
 
 	//	Read Data from Register ADCGAIN1, ADCGAIN2, ADCOFFSET
 	uint8_t adc_gain1_data = bms.getRegisterReadData(REGISTER_ADCGAIN1_ADDRESS);
 	uint8_t adc_gain2_data = bms.getRegisterReadData(REGISTER_ADCGAIN2_ADDRESS);
 	uint8_t adc_offset_data = bms.getRegisterReadData(REGISTER_ADCOFFSET_ADDRESS);
 
-	mcp2515.sendMessage(&frame); //423
-	frame = {frame_counter++, 1, {0X69}};
+	mcp2515.sendMessage(&test_frame); //423
+	test_frame = {frame_counter++, 1, {0X69}};
 
 	calculator.setAdcGain(adc_gain1_data, adc_gain2_data);
 	calculator.setAdcOffset(adc_offset_data);
@@ -107,12 +108,6 @@ void loop()
 	//	Battery Charging / Idle
 	if (calculator.isCellBalActivated(sys_ctrl2_data))
 	{
-		if (millis() - ams_state.cellbal_timestamp > calculator.TIME_CELLBAL)
-		{
-			ams_state.cellbal_state = !ams_state.cellbal_state;
-		}
-
-		ams_state.cellbal_timestamp = millis();
 		calculator.setCellBalFlagsOld();
 	}
 
@@ -158,5 +153,14 @@ void loop()
 	for (uint8_t index = 0; index < NUM_SLAVE_FRAME; ++index)
 	{
 		can_helper.sendVoltages(index);
+	}
+
+	//	Recieve Message from Master
+	if (mcp2515.readMessage(&rx_frame) == MCP2515::ERROR_OK)
+	{
+		if (rx_frame.can_id == can_helper.MASTER_ADDRESS)
+		{
+			can_helper.sendVoltages(0); // later modify
+		}
 	}
 }
