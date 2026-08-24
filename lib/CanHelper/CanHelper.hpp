@@ -25,7 +25,7 @@ class CanHelper
         uint16_t MASTER_ADDRESS = MCP2515_MASTER_ADDRESS;
         uint16_t SLAVE_ADDRESS = MCP2515_SLAVE_ADDRESS;
 
-        CanHelper(AmsState &ams_state_, MCP2515 &mcp2515_);
+        CanHelper(AmsState &ams_, MCP2515 &mcp2515_);
         CanHelper() = delete;
         void setNodeID(bool &jp1, bool &jp2, bool &jp3, bool &jp4);
         uint16_t getSlaveAddress(uint8_t index);
@@ -33,7 +33,7 @@ class CanHelper
         void sendPanic();
 
     private:
-        AmsState &ams_state;
+        AmsState &ams;
         MCP2515 &mcp2515;
 };
 

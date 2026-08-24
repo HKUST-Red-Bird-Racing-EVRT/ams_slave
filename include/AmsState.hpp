@@ -1,7 +1,6 @@
 #ifndef AMSSTATE_HPP
 #define AMSSTATE_HPP
 
-#include "FaultFlags.hpp"
 #include <stdint.h>
 
 constexpr uint8_t NUM_VC = 14; /**< Number of cells monitored by this AMS slave node. */
@@ -27,12 +26,36 @@ struct AmsState
     uint16_t temperatures[NUM_TS]; /**< Temperature readings from local thermistors. */
 
     uint32_t cellbal_timestamp = 0; /**< Timestamp of the last cell balancing operation. */
-    bool cellbal_state = false;         /**< CellBal State: Odd: False, Even: True */
+    bool cellbal_active = false;         /**< CellBal State*/
+    bool is_minvlotage_recieved = false; /**< Flag indicating if the minimum voltage has been received. */
+    bool cellbal_odd = false;   /**< CellBal Odd/Even State*/
     uint16_t cellbal_flags = 0x00;
-    FaultFlags fault_flags;   /**< Fault and status bits such as overvoltage, undervoltage, or sensor faults. */
+
+    bool discharge_active = false; /**< Discharging State*/
+    bool fault_active = false;
+    uint8_t fault_flags = 0x00;   /**< Fault and status bits such as overvoltage, undervoltage, or sensor faults. */
 
     uint8_t node_id;         /**< Identifier for this slave node on the AMS network. */
     uint8_t packet_counter;  /**< Counter for received or transmitted communication packets. */
 };
+
+/*
+CellBal Flag Bits
+Bit 0: discharge_state
+Bit 1: cellbal_state
+Bit 2 - 15: cellbal_flags for cell 0 - 13 (1 = balancing, 0 = not balancing)
+*/
+
+#define DISCHARGE_STATE_BIT         0x01
+#define CELLBAL_STATE_BIT           0x02
+#define CELLBAL_EVEN_MASK           0x5556 // 0101 0101 0101 0110
+#define CELLBAL_ODD_MASK            0xAAAA // 1010 1010 1010 1010
+
+//  Fault Flag Bits
+#define OVERVOLTAGE_FAULT_BIT       0x01
+#define UNDERVOLTAGE_FAULT_BIT      0x02
+#define OVERTEMPERATURE_FAULT_BIT   0x04
+#define UNDERTEMPERATURE_FAULT_BIT  0x08
+#define I2C_TIMEOUT_FAULT_BIT       0x10
 
 #endif // AMSSTATE_HPP

@@ -8,7 +8,6 @@
 #include "I2C.hpp"
 #include "Calculator.hpp"
 #include "CanHelper.hpp"
-#include "FaultFlags.cpp"
 
 // ignore -Wpedantic warnings for mcp2515.h
 #pragma GCC diagnostic push
@@ -21,13 +20,13 @@
 #define I2C_RECURRING_SIZE 4
 #define I2C_WATCHDOG_MAX_COUNT 10
 
-AmsState ams_state;
+AmsState ams;
 MCP2515 mcp2515(CS);
 // I2C<100, 4, 4, 10> i2c;
 I2C<I2C_BITRATE_KBPS, I2C_PRIORITY_SIZE, I2C_RECURRING_SIZE, I2C_WATCHDOG_MAX_COUNT> i2c;
-Calculator calculator(ams_state);
-CanHelper can_helper(ams_state, mcp2515);
-BQ76940<I2C_BITRATE_KBPS, I2C_PRIORITY_SIZE, I2C_RECURRING_SIZE, I2C_WATCHDOG_MAX_COUNT> bms(ams_state, i2c, calculator);
+Calculator calculator(ams);
+CanHelper can_helper(ams, mcp2515);
+BQ76940<I2C_BITRATE_KBPS, I2C_PRIORITY_SIZE, I2C_RECURRING_SIZE, I2C_WATCHDOG_MAX_COUNT> bms(ams, i2c, calculator);
 
 uint32_t frame_counter = 0x420;
 can_frame test_frame = {frame_counter++, 1, {0X69}};
@@ -43,22 +42,22 @@ void setup()
 	mcp2515.reset();
 	mcp2515.setBitrate(CAN_500KBPS, MCP_20MHZ);
 	mcp2515.setNormalMode();
-	
+
 	pinMode(ALERT, INPUT);
 	pinMode(CS, OUTPUT);
-	
+
 	pinMode(NTC1, INPUT);
 	pinMode(NTC2, INPUT);
 	pinMode(NTC3, INPUT);
 	pinMode(NTC4, INPUT);
 	pinMode(NTC5, INPUT);
-	
+
 	pinMode(JP1, INPUT);
 	pinMode(JP2, INPUT);
 	pinMode(JP3, INPUT);
 	pinMode(JP4, INPUT);
-	
-	mcp2515.sendMessage(&test_frame); //420
+
+	mcp2515.sendMessage(&test_frame); // 420
 	test_frame = {frame_counter++, 1, {0X69}};
 
 	//	Set up Slave ID
@@ -67,14 +66,13 @@ void setup()
 	bool jp3 = digitalRead(JP3);
 	bool jp4 = digitalRead(JP4);
 
-	
-	mcp2515.sendMessage(&test_frame); //421
+	mcp2515.sendMessage(&test_frame); // 421
 	test_frame = {frame_counter++, 1, {0X69}};
 
 	can_helper.setNodeID(jp1, jp2, jp3, jp4);
-	
-	 //423
-	mcp2515.sendMessage(&test_frame); //422
+
+	// 423
+	mcp2515.sendMessage(&test_frame); // 422
 	test_frame = {frame_counter++, 1, {0X69}};
 
 	//	Read Data from Register ADCGAIN1, ADCGAIN2, ADCOFFSET
@@ -82,7 +80,7 @@ void setup()
 	uint8_t adc_gain2_data = bms.getRegisterReadData(REGISTER_ADCGAIN2_ADDRESS);
 	uint8_t adc_offset_data = bms.getRegisterReadData(REGISTER_ADCOFFSET_ADDRESS);
 
-	mcp2515.sendMessage(&test_frame); //423
+	mcp2515.sendMessage(&test_frame); // 423
 	test_frame = {frame_counter++, 1, {0X69}};
 
 	calculator.setAdcGain(adc_gain1_data, adc_gain2_data);
@@ -92,41 +90,50 @@ void setup()
 void loop()
 {
 	i2c.pump();
-	bms.readVoltage(); // updates timestamp if had read
-	calculator.setVoltageMin();
-
-	// ntc.readTemperature();
-	ams_state.temperatures[0] = analogRead(NTC1);
-	ams_state.temperatures[1] = analogRead(NTC2);
-	ams_state.temperatures[2] = analogRead(NTC3);
-	ams_state.temperatures[3] = analogRead(NTC4);
-	ams_state.temperatures[4] = analogRead(NTC5);
-
+	
 	//	Read Data from Register SYS_CTRL2
 	uint8_t sys_ctrl2_data = bms.getRegisterReadData(REGISTER_SYS_CTRL2_ADDRESS);
+	calculator.setDischargingState(sys_ctrl2_data);
+
+	bms.readVoltage(); // updates timestamp if had read
+	// calculator.setVoltageMin();
+
+	// ntc.readTemperature();
+	ams.temperatures[0] = analogRead(NTC1);
+	ams.temperatures[1] = analogRead(NTC2);
+	ams.temperatures[2] = analogRead(NTC3);
+	ams.temperatures[3] = analogRead(NTC4);
+	ams.temperatures[4] = analogRead(NTC5);
 
 	//	Battery Charging / Idle
-	if (calculator.isCellBalActivated(sys_ctrl2_data))
+	if (ams.cellbal_active)
 	{
-		calculator.setCellBalFlagsOld();
+		ams.cellbal_flags &= ~DISCHARGE_STATE_BIT;
+		ams.cellbal_flags |= CELLBAL_STATE_BIT;
+
+		if (ams.is_minvlotage_recieved)
+		{
+			calculator.setCellBalFlags();
+		}
 	}
 
 	//	Battery Discharging
-	else
+	if (ams.discharge_active)
 	{
-		ams_state.cellbal_flags = 0x00;
+		ams.cellbal_flags = DISCHARGE_STATE_BIT;
+		ams.is_minvlotage_recieved = false;
 
 		for (uint8_t index = 0; index < NUM_VC; ++index)
 		{
-			if (calculator.isOverVoltage(ams_state.cell_voltages[index]))
+			if (calculator.isOverVoltage(ams.cell_voltages[index]))
 			{
-				ams_state.fault_flags.setOvervoltageFault();
+				ams.fault_flags |= OVERVOLTAGE_FAULT_BIT;
 				can_helper.sendPanic();
 				break;
 			}
-			else if (calculator.isUnderVoltage(ams_state.cell_voltages[index]))
+			else if (calculator.isUnderVoltage(ams.cell_voltages[index]))
 			{
-				ams_state.fault_flags.setUndervoltageFault();
+				ams.fault_flags |= UNDERVOLTAGE_FAULT_BIT;
 				can_helper.sendPanic();
 				break;
 			}
@@ -134,15 +141,15 @@ void loop()
 
 		for (uint8_t index = 0; index < NUM_TS; ++index)
 		{
-			if (calculator.isOverTemperature(ams_state.temperatures[index]))
+			if (calculator.isOverTemperature(ams.temperatures[index]))
 			{
-				ams_state.fault_flags.setOvertemperatureFault();
+				ams.fault_flags |= OVERTEMPERATURE_FAULT_BIT;
 				can_helper.sendPanic();
 				break;
 			}
-			else if (calculator.isUnderTemperature(ams_state.temperatures[index]))
+			else if (calculator.isUnderTemperature(ams.temperatures[index]))
 			{
-				ams_state.fault_flags.setUndertemperatureFault();
+				ams.fault_flags |= UNDERTEMPERATURE_FAULT_BIT;
 				can_helper.sendPanic();
 				break;
 			}

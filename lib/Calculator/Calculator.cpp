@@ -1,7 +1,7 @@
 #include "Calculator.hpp"
 
-Calculator::Calculator(AmsState &ams_state_)
-    : ams_state(ams_state_)
+Calculator::Calculator(AmsState &ams_)
+    : ams(ams_)
 {
 }
 
@@ -55,11 +55,14 @@ bool Calculator::isUnderVoltage(uint16_t &data)
     return (data < VOLTAGE_UV);
 }
 
-bool Calculator::isCellBalActivated(uint8_t &byte)
+void Calculator::setDischargingState(uint8_t &byte)
 {
     #define REGISTER_SYS_CTRL2_DSG_ON 0x02
 
-    return !(byte & REGISTER_SYS_CTRL2_DSG_ON);
+    if (byte & REGISTER_SYS_CTRL2_DSG_ON)
+    {
+        ams.discharge_active = true;
+    }
 }
 
 void Calculator::setVoltageMin()
@@ -68,65 +71,35 @@ void Calculator::setVoltageMin()
 
     for (uint8_t index = 0; index < NUM_VC; ++index)
     {
-        if (ams_state.cell_voltages[index] > min_voltage)
+        if (ams.cell_voltages[index] > min_voltage)
         {
-            min_voltage = ams_state.cell_voltages[index];
+            min_voltage = ams.cell_voltages[index];
         }
     }
 
     VOLTAGE_MIN = min_voltage;
 }
 
-void Calculator::setCellBalFlagsOld()
+void Calculator::setCellBalFlags()
 {
-    uint16_t flags = 0;
+    uint16_t flags = CELLBAL_STATE_BIT;
 
     for (uint8_t index = 0; index < NUM_VC; ++index)
     {
-        if (ams_state.cell_voltages[index] >= VOLTAGE_START && ams_state.cell_voltages[index] - VOLTAGE_MIN >= VOLTAGE_DELTA)
+        if (ams.cell_voltages[index] >= VOLTAGE_MIN && ams.cell_voltages[index] >= VOLTAGE_START && ams.cell_voltages[index] - VOLTAGE_MIN >= VOLTAGE_DELTA)
         {
-            flags |= 1 << index;
+            flags = 1 << (index + 1);
         }
     }
 
-    //  Odd: 0001 0101 0101 0101    0x1555
-    //  Even: 0100 1010 1010 1010   0x4AAA
-
-    if (!ams_state.cellbal_state)
+    if (!ams.cellbal_odd)
     {
-        flags &= 0x1555;
+        flags &= CELLBAL_EVEN_MASK;
     }
     else
     {
-        flags &= 0x4AAA;
+        flags &= CELLBAL_ODD_MASK;
     }
 
-    ams_state.cellbal_flags = flags;
-}
-
-void Calculator::setCellBalFlags(uint16_t &data)
-{
-    uint16_t flags = 0;
-
-    for (uint8_t index = 0; index < NUM_VC; ++index)
-    {
-        if (ams_state.cell_voltages[index] >= data)
-        {
-            flags |= 1 << index;
-        }
-    }
-
-    //  Odd: 0001 0101 0101 0101    0x1555
-    //  Even: 0100 1010 1010 1010   0x4AAA
-
-    if (!ams_state.cellbal_state)
-    {
-        flags &= 0x1555;
-    }
-    else
-    {
-        flags &= 0x4AAA;
-    }
-
-    ams_state.cellbal_flags = flags;
+    ams.cellbal_flags = flags;
 }
