@@ -43,7 +43,7 @@ void BQ76940<BITRATE_KBPS, PRIORITY_SIZE, RECURRING_SIZE, WATCHDOG_MAX_COUNT>::r
 
                 if (real_voltage >= calculator.VOLTAGE_MAX && !ams.discharge_active)
                 {
-                    ams.cellbal_active = true;
+                    ams.cellbal_flags |= CELLBAL_STATE_BIT;
                 }
 
             }
