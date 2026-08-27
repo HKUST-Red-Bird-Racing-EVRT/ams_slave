@@ -1,8 +1,9 @@
 #include "CanHelper.hpp"
 
-CanHelper::CanHelper(AmsState &ams_, MCP2515 &mcp2515_)
+CanHelper::CanHelper(AmsState &ams_, MCP2515 &mcp2515_, Calculator &calculator_)
     : ams(ams_),
-      mcp2515(mcp2515_)
+      mcp2515(mcp2515_),
+      calculator(calculator_)
 {
 }
 
@@ -127,4 +128,33 @@ void CanHelper::sendPanic()
 {
     can_frame send_frame = {PANIC_ADDRESS, 1, ams.fault_flags};
 	mcp2515.sendMessage(&send_frame);
+}
+
+void CanHelper::packMasterData(can_frame &frame)
+{
+    uint8_t command_byte = frame.data[0];
+
+    ams.discharge_active = command_byte & MASTERCMD_DISCHARGE_STATE_BIT;
+    ams.cellbal_active = command_byte & MASTERCMD_CELLBAL_STATE_BIT;
+    ams.cellbal_odd = command_byte & MASTERCMD_CELLBAL_ODD_BIT;
+
+    if (ams.cellbal_active)
+    {
+        ams.cellbal_flags &= ~DISCHARGE_STATE_BIT;
+		ams.cellbal_flags |= CELLBAL_STATE_BIT;
+        ams.is_balancevoltage_recieved = true;
+        calculator.VOLTAGE_BALANCE = frame.data[1] | (frame.data[2] << 8);
+        calculator.setCellBalFlags();
+        return;
+    }
+
+    if (ams.discharge_active)
+    {
+        ams.cellbal_flags = DISCHARGE_STATE_BIT;
+        ams.is_balancevoltage_recieved = false;
+        calculator.VOLTAGE_BALANCE = 0;
+        return;
+    }
+
+    calculator.VOLTAGE_BALANCE = 0;
 }

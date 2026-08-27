@@ -86,7 +86,7 @@ void Calculator::setCellBalFlags()
 
     for (uint8_t index = 0; index < NUM_VC; ++index)
     {
-        if (ams.cell_voltages[index] >= VOLTAGE_MIN && ams.cell_voltages[index] >= VOLTAGE_START && ams.cell_voltages[index] - VOLTAGE_MIN >= VOLTAGE_DELTA)
+        if (ams.cell_voltages[index] >= VOLTAGE_BALANCE && ams.cell_voltages[index] >= VOLTAGE_START && ams.cell_voltages[index] - VOLTAGE_BALANCE >= VOLTAGE_DELTA)
         {
             flags = 1 << (index + 1);
         }

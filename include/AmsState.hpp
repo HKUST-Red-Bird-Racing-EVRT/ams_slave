@@ -27,7 +27,7 @@ struct AmsState
 
     uint32_t cellbal_timestamp = 0; /**< Timestamp of the last cell balancing operation. */
     bool cellbal_active = false;         /**< CellBal State*/
-    bool is_minvlotage_recieved = false; /**< Flag indicating if the minimum voltage has been received. */
+    bool is_balancevoltage_recieved = false; /**< Flag indicating if the balance voltage has been received. */
     bool cellbal_odd = false;   /**< CellBal Odd/Even State*/
     uint16_t cellbal_flags = 0x00;
 

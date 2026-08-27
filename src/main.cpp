@@ -25,7 +25,7 @@ MCP2515 mcp2515(CS);
 // I2C<100, 4, 4, 10> i2c;
 I2C<I2C_BITRATE_KBPS, I2C_PRIORITY_SIZE, I2C_RECURRING_SIZE, I2C_WATCHDOG_MAX_COUNT> i2c;
 Calculator calculator(ams);
-CanHelper can_helper(ams, mcp2515);
+CanHelper can_helper(ams, mcp2515, calculator);
 BQ76940<I2C_BITRATE_KBPS, I2C_PRIORITY_SIZE, I2C_RECURRING_SIZE, I2C_WATCHDOG_MAX_COUNT> bms(ams, i2c, calculator);
 
 uint32_t frame_counter = 0x420;
@@ -90,7 +90,7 @@ void setup()
 void loop()
 {
 	i2c.pump();
-	
+
 	//	Read Data from Register SYS_CTRL2
 	uint8_t sys_ctrl2_data = bms.getRegisterReadData(REGISTER_SYS_CTRL2_ADDRESS);
 	calculator.setDischargingState(sys_ctrl2_data);
@@ -105,69 +105,57 @@ void loop()
 	ams.temperatures[3] = analogRead(NTC4);
 	ams.temperatures[4] = analogRead(NTC5);
 
-	//	Battery Charging / Idle
-	if (ams.cellbal_active)
-	{
-		ams.cellbal_flags &= ~DISCHARGE_STATE_BIT;
-		ams.cellbal_flags |= CELLBAL_STATE_BIT;
-
-		if (ams.is_minvlotage_recieved)
-		{
-			calculator.setCellBalFlags();
-		}
-	}
-
-	//	Battery Discharging
-	if (ams.discharge_active)
-	{
-		ams.cellbal_flags = DISCHARGE_STATE_BIT;
-		ams.is_minvlotage_recieved = false;
-
-		for (uint8_t index = 0; index < NUM_VC; ++index)
-		{
-			if (calculator.isOverVoltage(ams.cell_voltages[index]))
-			{
-				ams.fault_flags |= OVERVOLTAGE_FAULT_BIT;
-				can_helper.sendPanic();
-				break;
-			}
-			else if (calculator.isUnderVoltage(ams.cell_voltages[index]))
-			{
-				ams.fault_flags |= UNDERVOLTAGE_FAULT_BIT;
-				can_helper.sendPanic();
-				break;
-			}
-		}
-
-		for (uint8_t index = 0; index < NUM_TS; ++index)
-		{
-			if (calculator.isOverTemperature(ams.temperatures[index]))
-			{
-				ams.fault_flags |= OVERTEMPERATURE_FAULT_BIT;
-				can_helper.sendPanic();
-				break;
-			}
-			else if (calculator.isUnderTemperature(ams.temperatures[index]))
-			{
-				ams.fault_flags |= UNDERTEMPERATURE_FAULT_BIT;
-				can_helper.sendPanic();
-				break;
-			}
-		}
-	}
-
-	//	Send Voltages
-	for (uint8_t index = 0; index < NUM_SLAVE_FRAME; ++index)
-	{
-		can_helper.sendVoltages(index);
-	}
-
-	//	Recieve Message from Master
+	//	Recieve Request from Master
 	if (mcp2515.readMessage(&rx_frame) == MCP2515::ERROR_OK)
 	{
 		if (rx_frame.can_id == can_helper.MASTER_ADDRESS)
 		{
-			can_helper.sendVoltages(0); // later modify
+			can_helper.packMasterData(rx_frame);
+
+			//	Send Voltages
+			for (uint8_t index = 0; index < NUM_SLAVE_FRAME; ++index)
+			{
+				can_helper.sendVoltages(index);
+			}
+		}
+	}
+
+	//	Battery Charging / Idle
+	if (calculator.VOLTAGE_BALANCE)
+	{
+		calculator.setCellBalFlags();
+		bms.writeCellBal();
+	}
+
+	for (uint8_t index = 0; index < NUM_VC; ++index)
+	{
+		if (calculator.isOverVoltage(ams.cell_voltages[index]))
+		{
+			ams.fault_flags |= OVERVOLTAGE_FAULT_BIT;
+			can_helper.sendPanic();
+			break;
+		}
+		else if (calculator.isUnderVoltage(ams.cell_voltages[index]))
+		{
+			ams.fault_flags |= UNDERVOLTAGE_FAULT_BIT;
+			can_helper.sendPanic();
+			break;
+		}
+	}
+
+	for (uint8_t index = 0; index < NUM_TS; ++index)
+	{
+		if (calculator.isOverTemperature(ams.temperatures[index]))
+		{
+			ams.fault_flags |= OVERTEMPERATURE_FAULT_BIT;
+			can_helper.sendPanic();
+			break;
+		}
+		else if (calculator.isUnderTemperature(ams.temperatures[index]))
+		{
+			ams.fault_flags |= UNDERTEMPERATURE_FAULT_BIT;
+			can_helper.sendPanic();
+			break;
 		}
 	}
 }

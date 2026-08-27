@@ -72,3 +72,40 @@ uint8_t BQ76940<BITRATE_KBPS, PRIORITY_SIZE, RECURRING_SIZE, WATCHDOG_MAX_COUNT>
 
     return buffer[0];
 }
+
+template <uint16_t BITRATE_KBPS, uint8_t PRIORITY_SIZE, uint8_t RECURRING_SIZE, uint8_t WATCHDOG_MAX_COUNT>
+void BQ76940<BITRATE_KBPS, PRIORITY_SIZE, RECURRING_SIZE, WATCHDOG_MAX_COUNT>::writeCellBal()
+{
+    uint16_t cellbal_flags = ams.cellbal_flags >> 2;
+    uint8_t cellbal_flags_low = cellbal_flags & 0x1F;
+    uint8_t cellbal_flags_mid = (cellbal_flags >> 5) & 0x1F;
+    uint8_t cellbal_flags_high = (cellbal_flags >> 10) & 0x1F;
+
+    bool is_cell14_cellbal_active = cellbal_flags_high & 0x10;
+    if (is_cell14_cellbal_active)
+    {
+        cellbal_flags_high |= 0x20;
+        cellbal_flags_high &= ~0x10;
+    }
+
+    const uint8_t send_cellbal1_data[2] = {REGISTER_CELLBAL1_ADDRESS, cellbal_flags_low};
+
+    const I2cTransaction cellbal1_write_transaction = I2cTransaction::makeWrite(IC_ADDRESS, 1, send_cellbal1_data);
+
+    while (!i2c.pushPriority(cellbal1_write_transaction))
+        ;
+
+    const uint8_t send_cellbal2_data[2] = {REGISTER_CELLBAL2_ADDRESS, cellbal_flags_mid};
+
+    const I2cTransaction cellbal2_write_transaction = I2cTransaction::makeWrite(IC_ADDRESS, 1, send_cellbal2_data);
+
+    while (!i2c.pushPriority(cellbal2_write_transaction))
+        ;
+
+    const uint8_t send_cellbal3_data[2] = {REGISTER_CELLBAL3_ADDRESS, cellbal_flags_high};
+
+    const I2cTransaction cellbal3_write_transaction = I2cTransaction::makeWrite(IC_ADDRESS, 1, send_cellbal3_data);
+
+    while (!i2c.pushPriority(cellbal3_write_transaction))
+        ;
+}

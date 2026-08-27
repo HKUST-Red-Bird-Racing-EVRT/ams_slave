@@ -31,7 +31,4 @@
 #define NTC4 PIN_PC2
 #define NTC5 PIN_PC3
 
-//  IC Address
-#define IC_ADDRESS 0x08
-
 #endif // BoardConfig_H

@@ -2,6 +2,7 @@
 #define BQ76940_HPP
 
 #include "AmsState.hpp"
+#include "BqRegsiters.h"
 #include "Calculator.hpp"
 #include "I2C.hpp"
 #include <Arduino.h>
@@ -15,13 +16,15 @@ class BQ76940
         BQ76940() = delete; // Prevent default construction without AmsState reference
         void readVoltage();
         uint8_t getRegisterReadData(uint8_t address);
+        void writeCellBal();
 
     private:
         AmsState &ams;
         I2C<BITRATE_KBPS, PRIORITY_SIZE, RECURRING_SIZE, WATCHDOG_MAX_COUNT> &i2c;
         Calculator &calculator;
-        static constexpr uint8_t BQ76940_I2C_ADDRESS = 0x08; /**< I2C address for the BQ76940 device. */
-        static constexpr uint8_t BQ76940_VOLTAGE_REGISTER = 0x0C; /**< Register address for reading cell voltages. */
+        static constexpr uint8_t BQ76940_I2C_ADDRESS = IC_ADDRESS; /**< I2C address for the BQ76940 device. */
+
+        static constexpr uint8_t BQ76940_VOLTAGE_REGISTER = REGISTER_VC1_HI_ADDRESS; /**< Register address for reading cell voltages. */
         static constexpr uint8_t VOLTAGE_READ_COUNT = 30; /**< Number of bytes to read voltage data for. */
         uint8_t voltage_buffer[VOLTAGE_READ_COUNT]; /**< Buffer to hold raw voltage data read from the BQ76940. Each cell voltage is 2 bytes. */
         uint32_t booton_timestamp = 0; /**< Timestamp when the device was powered on, used for boot timing. */
