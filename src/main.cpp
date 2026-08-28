@@ -115,7 +115,7 @@ void loop()
 			//	Send Voltages
 			for (uint8_t index = 0; index < NUM_SLAVE_FRAME; ++index)
 			{
-				can_helper.sendVoltages(index);
+				can_helper.sendMasterData(index);
 			}
 		}
 	}

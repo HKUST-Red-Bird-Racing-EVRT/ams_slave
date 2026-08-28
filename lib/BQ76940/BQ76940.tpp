@@ -76,17 +76,9 @@ uint8_t BQ76940<BITRATE_KBPS, PRIORITY_SIZE, RECURRING_SIZE, WATCHDOG_MAX_COUNT>
 template <uint16_t BITRATE_KBPS, uint8_t PRIORITY_SIZE, uint8_t RECURRING_SIZE, uint8_t WATCHDOG_MAX_COUNT>
 void BQ76940<BITRATE_KBPS, PRIORITY_SIZE, RECURRING_SIZE, WATCHDOG_MAX_COUNT>::writeCellBal()
 {
-    uint16_t cellbal_flags = ams.cellbal_flags >> 2;
-    uint8_t cellbal_flags_low = cellbal_flags & 0x1F;
-    uint8_t cellbal_flags_mid = (cellbal_flags >> 5) & 0x1F;
-    uint8_t cellbal_flags_high = (cellbal_flags >> 10) & 0x1F;
-
-    bool is_cell14_cellbal_active = cellbal_flags_high & 0x10;
-    if (is_cell14_cellbal_active)
-    {
-        cellbal_flags_high |= 0x20;
-        cellbal_flags_high &= ~0x10;
-    }
+    uint8_t cellbal_flags_low = ams.cellbal_flags & 0x1F;
+    uint8_t cellbal_flags_mid = (ams.cellbal_flags >> 5) & 0x1F;
+    uint8_t cellbal_flags_high = (ams.cellbal_flags >> 10) & 0x1F;
 
     const uint8_t send_cellbal1_data[2] = {REGISTER_CELLBAL1_ADDRESS, cellbal_flags_low};
 

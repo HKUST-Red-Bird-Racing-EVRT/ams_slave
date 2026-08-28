@@ -17,97 +17,108 @@ void CanHelper::setNodeID(bool &jp1, bool &jp2, bool &jp3, bool &jp4)
     ams.node_id = id;
     PANIC_ADDRESS += id;
     MASTER_ADDRESS += id;
-    SLAVE_ADDRESS += id;
+    SLAVE_ADDRESS += id * NUM_SLAVE_FRAME;
 }
 
 uint16_t CanHelper::getSlaveAddress(uint8_t index)
 {
-    return SLAVE_ADDRESS + index * NUM_SLAVE;
+    return SLAVE_ADDRESS + index;
 }
 
-void CanHelper::sendVoltages(uint8_t index)
+void CanHelper::sendMasterData(uint8_t index)
 {
     switch (index)
     {
     //  Send Frame 0
-    case 0:
+    case 0x00:
         can_frame send_voltage_frame_0 = {
             getSlaveAddress(0),
-            8,
+            3,
+            ams.command_flags,
             ams.cellbal_flags & 0xFF,
             (ams.cellbal_flags >> 8) & 0xFF,
-            ams.cell_voltages[0] & 0xFF,
-            (ams.cell_voltages[0] >> 8) & 0xFF,
-            ams.cell_voltages[1] & 0xFF,
-            (ams.cell_voltages[1] >> 8) & 0xFF,
-            ams.cell_voltages[2] & 0xFF,
-            (ams.cell_voltages[2] >> 8) & 0xFF,
         };
 
         mcp2515.sendMessage(&send_voltage_frame_0);
         break;
 
     //  Send Frame 1
-    case 1:
+    case 0x01:
         can_frame send_voltage_frame_1 = {
             getSlaveAddress(1),
             8,
+            ams.cell_voltages[0] & 0xFF,
+            (ams.cell_voltages[0] >> 8) & 0xFF,
+            ams.cell_voltages[1] & 0xFF,
+            (ams.cell_voltages[1] >> 8) & 0xFF,
+            ams.cell_voltages[2] & 0xFF,
+            (ams.cell_voltages[2] >> 8) & 0xFF,
             ams.cell_voltages[3] & 0xFF,
             (ams.cell_voltages[3] >> 8) & 0xFF,
-            ams.cell_voltages[4] & 0xFF,
-            (ams.cell_voltages[4] >> 8) & 0xFF,
-            ams.cell_voltages[5] & 0xFF,
-            (ams.cell_voltages[5] >> 8) & 0xFF,
-            ams.cell_voltages[6] & 0xFF,
-            (ams.cell_voltages[6] >> 8) & 0xFF,
         };
 
         mcp2515.sendMessage(&send_voltage_frame_1);
         break;
 
     //  Send Frame 2
-    case 2:
+    case 0x02:
         can_frame send_voltage_frame_2 = {
             getSlaveAddress(2),
             8,
+            ams.cell_voltages[4] & 0xFF,
+            (ams.cell_voltages[4] >> 8) & 0xFF,
+            ams.cell_voltages[5] & 0xFF,
+            (ams.cell_voltages[5] >> 8) & 0xFF,
+            ams.cell_voltages[6] & 0xFF,
+            (ams.cell_voltages[6] >> 8) & 0xFF,
             ams.cell_voltages[7] & 0xFF,
             (ams.cell_voltages[7] >> 8) & 0xFF,
-            ams.cell_voltages[8] & 0xFF,
-            (ams.cell_voltages[8] >> 8) & 0xFF,
-            ams.cell_voltages[9] & 0xFF,
-            (ams.cell_voltages[9] >> 8) & 0xFF,
-            ams.cell_voltages[10] & 0xFF,
-            (ams.cell_voltages[10] >> 8) & 0xFF,
         };
 
         mcp2515.sendMessage(&send_voltage_frame_2);
         break;
 
     //  Send Frame 3
-    case 3:
+    case 0x03:
         can_frame send_voltage_frame_3 = {
             getSlaveAddress(3),
             8,
+            ams.cell_voltages[8] & 0xFF,
+            (ams.cell_voltages[8] >> 8) & 0xFF,
+            ams.cell_voltages[9] & 0xFF,
+            (ams.cell_voltages[9] >> 8) & 0xFF,
+            ams.cell_voltages[10] & 0xFF,
+            (ams.cell_voltages[10] >> 8) & 0xFF,
             ams.cell_voltages[11] & 0xFF,
             (ams.cell_voltages[11] >> 8) & 0xFF,
-            ams.cell_voltages[12] & 0xFF,
-            (ams.cell_voltages[12] >> 8) & 0xFF,
-            ams.cell_voltages[13] & 0xFF,
-            (ams.cell_voltages[13] >> 8) & 0xFF,
-            ams.temperatures[0] & 0xFF,
-            (ams.temperatures[0] >> 8) & 0xFF,
         };
 
         mcp2515.sendMessage(&send_voltage_frame_3);
         break;
 
     //  Send Frame 4
-    case 4:
+    case 0x04:
         can_frame send_voltage_frame_4 = {
             getSlaveAddress(4),
             8,
+            ams.cell_voltages[12] & 0xFF,
+            (ams.cell_voltages[12] >> 8) & 0xFF,
+            ams.cell_voltages[13] & 0xFF,
+            (ams.cell_voltages[13] >> 8) & 0xFF,
+            ams.temperatures[0] & 0xFF,
+            (ams.temperatures[0] >> 8) & 0xFF,
             ams.temperatures[1] & 0xFF,
             (ams.temperatures[1] >> 8) & 0xFF,
+        };
+
+        mcp2515.sendMessage(&send_voltage_frame_4);
+        break;
+
+    //  Send Frame 5
+    case 0x05:
+        can_frame send_voltage_frame_5 = {
+            getSlaveAddress(5),
+            6,
             ams.temperatures[2] & 0xFF,
             (ams.temperatures[2] >> 8) & 0xFF,
             ams.temperatures[3] & 0xFF,
@@ -116,7 +127,7 @@ void CanHelper::sendVoltages(uint8_t index)
             (ams.temperatures[4] >> 8) & 0xFF,
         };
 
-        mcp2515.sendMessage(&send_voltage_frame_4);
+        mcp2515.sendMessage(&send_voltage_frame_5);
         break;
 
     default:
@@ -127,7 +138,7 @@ void CanHelper::sendVoltages(uint8_t index)
 void CanHelper::sendPanic()
 {
     can_frame send_frame = {PANIC_ADDRESS, 1, ams.fault_flags};
-	mcp2515.sendMessage(&send_frame);
+    mcp2515.sendMessage(&send_frame);
 }
 
 void CanHelper::packMasterData(can_frame &frame)
@@ -140,8 +151,8 @@ void CanHelper::packMasterData(can_frame &frame)
 
     if (ams.cellbal_active)
     {
-        ams.cellbal_flags &= ~DISCHARGE_STATE_BIT;
-		ams.cellbal_flags |= CELLBAL_STATE_BIT;
+        ams.command_flags &= ~DISCHARGE_STATE_BIT;
+        ams.command_flags |= CELLBAL_STATE_BIT;
         ams.is_balancevoltage_recieved = true;
         calculator.VOLTAGE_BALANCE = frame.data[1] | (frame.data[2] << 8);
         calculator.setCellBalFlags();
@@ -150,7 +161,7 @@ void CanHelper::packMasterData(can_frame &frame)
 
     if (ams.discharge_active)
     {
-        ams.cellbal_flags = DISCHARGE_STATE_BIT;
+        ams.command_flags = DISCHARGE_STATE_BIT;
         ams.is_balancevoltage_recieved = false;
         calculator.VOLTAGE_BALANCE = 0;
         return;

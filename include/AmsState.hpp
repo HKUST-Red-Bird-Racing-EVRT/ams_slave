@@ -25,6 +25,8 @@ struct AmsState
     uint32_t message_timestamp = 0;       /**< Timestamp of the last valid message received from this slave. */
     uint16_t temperatures[NUM_TS]; /**< Temperature readings from local thermistors. */
 
+    uint8_t command_flags = 0x00; /**< Command flag received from the master, used to control slave behavior. */
+
     uint32_t cellbal_timestamp = 0; /**< Timestamp of the last cell balancing operation. */
     bool cellbal_active = false;         /**< CellBal State*/
     bool is_balancevoltage_recieved = false; /**< Flag indicating if the balance voltage has been received. */
@@ -40,16 +42,21 @@ struct AmsState
 };
 
 /*
-CellBal Flag Bits
+Command Flag Bits
 Bit 0: discharge_state
 Bit 1: cellbal_state
-Bit 2 - 15: cellbal_flags for cell 0 - 13 (1 = balancing, 0 = not balancing)
+Bit 2: cellbal_odd
+Bit 3: sequence_toggle
 */
 
 #define DISCHARGE_STATE_BIT         0x01
 #define CELLBAL_STATE_BIT           0x02
-#define CELLBAL_EVEN_MASK           0x5556 // 0101 0101 0101 0110
-#define CELLBAL_ODD_MASK            0xAAAA // 1010 1010 1010 1010
+#define CELLBAL_ODD_BIT             0x04
+#define SEQUENCE_TOGGLE_BIT         0x08
+
+//  CellBal Mask Bits
+#define CELLBAL_EVEN_MASK           0x1555 // 0001 0101 0101 0101
+#define CELLBAL_ODD_MASK            0x4AAA // 0100 1010 1010 1010
 
 //  Fault Flag Bits
 #define OVERVOLTAGE_FAULT_BIT       0x01

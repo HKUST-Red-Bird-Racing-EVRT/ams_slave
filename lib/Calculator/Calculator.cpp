@@ -82,13 +82,13 @@ void Calculator::setVoltageMin()
 
 void Calculator::setCellBalFlags()
 {
-    uint16_t flags = CELLBAL_STATE_BIT;
+    uint16_t flags = 0x00;
 
     for (uint8_t index = 0; index < NUM_VC; ++index)
     {
         if (ams.cell_voltages[index] >= VOLTAGE_BALANCE && ams.cell_voltages[index] >= VOLTAGE_START && ams.cell_voltages[index] - VOLTAGE_BALANCE >= VOLTAGE_DELTA)
         {
-            flags = 1 << (index + 1);
+            flags |= 1 << index;
         }
     }
 

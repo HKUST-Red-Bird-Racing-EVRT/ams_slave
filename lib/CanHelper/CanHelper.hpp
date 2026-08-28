@@ -17,7 +17,7 @@
 #define MCP2515_SLAVE_ADDRESS 0x300
 
 #define NUM_SLAVE 10
-#define NUM_SLAVE_FRAME 5
+#define NUM_SLAVE_FRAME 6
 
 class CanHelper
 {
@@ -30,7 +30,7 @@ class CanHelper
         CanHelper() = delete;
         void setNodeID(bool &jp1, bool &jp2, bool &jp3, bool &jp4);
         uint16_t getSlaveAddress(uint8_t index);
-        void sendVoltages(uint8_t index);
+        void sendMasterData(uint8_t index);
         void sendPanic();
         void packMasterData(can_frame &frame);
 
@@ -44,5 +44,6 @@ class CanHelper
 #define MASTERCMD_DISCHARGE_STATE_BIT   0x01
 #define MASTERCMD_CELLBAL_STATE_BIT     0x02
 #define MASTERCMD_CELLBAL_ODD_BIT       0x04
+#define MASTERCMD_SEQTOGGLE_BIT         0x08
 
 #endif  //  CAN_HELPER_HPP
