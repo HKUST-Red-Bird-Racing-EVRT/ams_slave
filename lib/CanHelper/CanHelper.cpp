@@ -17,12 +17,12 @@ void CanHelper::setNodeID(bool &jp1, bool &jp2, bool &jp3, bool &jp4)
     ams.node_id = id;
     PANIC_ADDRESS += id;
     MASTER_ADDRESS += id;
-    SLAVE_ADDRESS += id * NUM_SLAVE_FRAME;
+    SLAVE_ADDRESS += id + NUM_SLAVE;
 }
 
-uint16_t CanHelper::getSlaveAddress(uint8_t index)
+uint16_t CanHelper::getSlaveMessageAddress(uint8_t index)
 {
-    return SLAVE_ADDRESS + index;
+    return SLAVE_ADDRESS + index * 0x10;
 }
 
 void CanHelper::sendMasterData(uint8_t index)
@@ -32,7 +32,7 @@ void CanHelper::sendMasterData(uint8_t index)
     //  Send Frame 0
     case 0x00:
         can_frame send_voltage_frame_0 = {
-            getSlaveAddress(0),
+            getSlaveMessageAddress(0),
             3,
             ams.command_flags,
             ams.cellbal_flags & 0xFF,
@@ -45,7 +45,7 @@ void CanHelper::sendMasterData(uint8_t index)
     //  Send Frame 1
     case 0x01:
         can_frame send_voltage_frame_1 = {
-            getSlaveAddress(1),
+            getSlaveMessageAddress(1),
             8,
             ams.cell_voltages[0] & 0xFF,
             (ams.cell_voltages[0] >> 8) & 0xFF,
@@ -63,7 +63,7 @@ void CanHelper::sendMasterData(uint8_t index)
     //  Send Frame 2
     case 0x02:
         can_frame send_voltage_frame_2 = {
-            getSlaveAddress(2),
+            getSlaveMessageAddress(2),
             8,
             ams.cell_voltages[4] & 0xFF,
             (ams.cell_voltages[4] >> 8) & 0xFF,
@@ -81,7 +81,7 @@ void CanHelper::sendMasterData(uint8_t index)
     //  Send Frame 3
     case 0x03:
         can_frame send_voltage_frame_3 = {
-            getSlaveAddress(3),
+            getSlaveMessageAddress(3),
             8,
             ams.cell_voltages[8] & 0xFF,
             (ams.cell_voltages[8] >> 8) & 0xFF,
@@ -99,7 +99,7 @@ void CanHelper::sendMasterData(uint8_t index)
     //  Send Frame 4
     case 0x04:
         can_frame send_voltage_frame_4 = {
-            getSlaveAddress(4),
+            getSlaveMessageAddress(4),
             8,
             ams.cell_voltages[12] & 0xFF,
             (ams.cell_voltages[12] >> 8) & 0xFF,
@@ -117,7 +117,7 @@ void CanHelper::sendMasterData(uint8_t index)
     //  Send Frame 5
     case 0x05:
         can_frame send_voltage_frame_5 = {
-            getSlaveAddress(5),
+            getSlaveMessageAddress(5),
             6,
             ams.temperatures[2] & 0xFF,
             (ams.temperatures[2] >> 8) & 0xFF,
