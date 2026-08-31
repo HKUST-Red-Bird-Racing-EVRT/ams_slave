@@ -15,14 +15,20 @@ void CanHelper::setNodeID(bool &jp1, bool &jp2, bool &jp3, bool &jp4)
     id |= (jp3 << 2);
     id |= (jp4 << 3);
     ams.node_id = id;
-    PANIC_ADDRESS += id;
-    MASTER_ADDRESS += id;
-    SLAVE_ADDRESS += id + NUM_SLAVE;
+    PANIC_MESSAGE_ADDRESS += id;
+    MASTER_COMMAND_ADDRESS += id;
+    SLAVE_MESSAGE_ADDRESS += id;
 }
 
 uint16_t CanHelper::getSlaveMessageAddress(uint8_t index)
 {
-    return SLAVE_ADDRESS + index * 0x10;
+    return SLAVE_MESSAGE_ADDRESS + index * 0x10;
+}
+
+uint8_t CanHelper::getMessageIndexFromAddress(uint16_t address)
+{
+    return address - MASTER_REQUEST_ADDRESS;
+;
 }
 
 void CanHelper::sendMasterData(uint8_t index)
@@ -137,7 +143,7 @@ void CanHelper::sendMasterData(uint8_t index)
 
 void CanHelper::sendPanic()
 {
-    can_frame send_frame = {PANIC_ADDRESS, 1, ams.fault_flags};
+    can_frame send_frame = {PANIC_MESSAGE_ADDRESS, 1, ams.fault_flags};
     mcp2515.sendMessage(&send_frame);
 }
 

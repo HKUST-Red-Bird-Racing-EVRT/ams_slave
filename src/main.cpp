@@ -41,6 +41,16 @@ void setup()
 {
 	mcp2515.reset();
 	mcp2515.setBitrate(CAN_500KBPS, MCP_20MHZ);
+
+	// Accept any ID from 0x200 to 0x2FF
+	mcp2515.setConfigMode();
+
+	// Mask: Check top 3 bits (0x700)
+	mcp2515.setFilterMask(MCP2515::MASK0, false, 0x700);
+
+	// Filter 0: Matches any ID where top 3 bits are 0b010 (0x200 - 0x2FF)
+	mcp2515.setFilter(MCP2515::RXF0, false, 0x200);
+
 	mcp2515.setNormalMode();
 
 	pinMode(ALERT, INPUT);
@@ -105,17 +115,23 @@ void loop()
 	ams.temperatures[3] = analogRead(NTC4);
 	ams.temperatures[4] = analogRead(NTC5);
 
-	//	Recieve Request from Master
+	//	Recieve Message from Master
 	if (mcp2515.readMessage(&rx_frame) == MCP2515::ERROR_OK)
 	{
-		if (rx_frame.can_id == can_helper.MASTER_ADDRESS)
+		//	Recieve Command from Master
+		if (rx_frame.can_id == can_helper.MASTER_COMMAND_ADDRESS)
 		{
 			can_helper.packMasterData(rx_frame);
+		}
 
-			//	Send Voltages
-			for (uint8_t index = 0; index < NUM_SLAVE_FRAME; ++index)
+		//	Recieve Request from Master
+		else if (rx_frame.can_id >= can_helper.MASTER_REQUEST_ADDRESS)
+		{
+			uint8_t message_index = can_helper.getMessageIndexFromAddress(rx_frame.can_id);
+			if (message_index < NUM_SLAVE_FRAME)
 			{
-				can_helper.sendMasterData(index);
+				//	Send Voltages
+				can_helper.sendMasterData(message_index);
 			}
 		}
 	}
@@ -127,6 +143,7 @@ void loop()
 		bms.writeCellBal();
 	}
 
+	//	Check for Faults
 	for (uint8_t index = 0; index < NUM_VC; ++index)
 	{
 		if (calculator.isOverVoltage(ams.cell_voltages[index]))
