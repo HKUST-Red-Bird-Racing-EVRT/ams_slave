@@ -1,3 +1,14 @@
+/**
+ * @file main.cpp
+ * @author Oscar Chan, Red Bird Racing (oscarckh0818@gmail.com)
+ * @brief Main AMS Slave program entry point
+ * @version 2.0.0.beta1
+ * @date 2026-09-04
+ *
+ * @copyright Copyright (c) 2026 Red Bird Racing
+ *
+ */
+
 #include <Arduino.h>
 #include "BoardConfig.h"
 #include "BqRegsiters.h"
@@ -16,17 +27,15 @@
 #pragma GCC diagnostic pop
 
 #define I2C_BITRATE_KBPS 100
-#define I2C_PRIORITY_SIZE 4
-#define I2C_RECURRING_SIZE 4
+#define I2C_QUEUE_SIZE 8
 #define I2C_WATCHDOG_MAX_COUNT 10
 
 AmsState ams;
 MCP2515 mcp2515(CS);
-// I2C<100, 4, 4, 10> i2c;
-I2C<I2C_BITRATE_KBPS, I2C_PRIORITY_SIZE, I2C_RECURRING_SIZE, I2C_WATCHDOG_MAX_COUNT> i2c;
+I2C<I2C_BITRATE_KBPS, I2C_QUEUE_SIZE, I2C_WATCHDOG_MAX_COUNT> i2c;
 Calculator calculator(ams);
 CanHelper can_helper(ams, mcp2515, calculator);
-BQ76940<I2C_BITRATE_KBPS, I2C_PRIORITY_SIZE, I2C_RECURRING_SIZE, I2C_WATCHDOG_MAX_COUNT> bms(ams, i2c, calculator);
+BQ76940<I2C_BITRATE_KBPS, I2C_QUEUE_SIZE, I2C_WATCHDOG_MAX_COUNT> bms(ams, i2c, calculator);
 
 uint32_t frame_counter = 0x420;
 can_frame test_frame = {frame_counter++, 1, {0X69}};
@@ -137,7 +146,7 @@ void loop()
 	}
 
 	//	Battery Charging / Idle
-	if (calculator.VOLTAGE_BALANCE)
+	if (calculator.VOLTAGE_BALANCE != 0 && !ams.discharge_active)
 	{
 		calculator.setCellBalFlags();
 		bms.writeCellBal();

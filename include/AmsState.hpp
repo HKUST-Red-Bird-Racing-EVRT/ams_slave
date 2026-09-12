@@ -1,3 +1,11 @@
+/**
+ * @file AmsState.hpp
+ * @author Oscar Chan, Red Bird Racing (oscarckh0818@gmail.com)
+ * @brief Definition of the AMSState structure representing the state of AMS Slave nodes.
+ * @version 2.0.0
+ * @date 2026-09-04
+ */
+
 #ifndef AMSSTATE_HPP
 #define AMSSTATE_HPP
 
@@ -12,11 +20,6 @@ constexpr uint8_t NUM_TS = 5; /**< Number of temperature sensors monitored by th
  * This structure holds the measurements and status information for a single
  * section of the accumulator, including cell voltages, temperature readings,
  * fault/status flags, balancing state, and communication bookkeeping.
- * @param cell_voltages             An array of voltage readings for the cells monitored by this slave.
- * @param temperatures              An array of temperature readings from local thermistors or sensors.
- * @param fault_flags               A bitfield representing various fault and status conditions such as overvoltage, undervoltage, or sensor faults.
- * @param node_id                   An identifier for this slave node on the AMS network.
- * @param packet_counter            A counter for received or transmitted communication packets, used for tracking message sequence.
  */
 
 struct AmsState
@@ -28,13 +31,13 @@ struct AmsState
     uint8_t command_flags = 0x00; /**< Command flag received from the master, used to control slave behavior. */
 
     uint32_t cellbal_timestamp = 0; /**< Timestamp of the last cell balancing operation. */
-    bool cellbal_active = false;         /**< CellBal State*/
+    bool cellbal_active = false;         /**< Whether cell balancing is active. */
     bool is_balancevoltage_recieved = false; /**< Flag indicating if the balance voltage has been received. */
-    bool cellbal_odd = false;   /**< CellBal Odd/Even State*/
-    uint16_t cellbal_flags = 0x00;
+    bool cellbal_odd = false;   /**< Whether the odd cell-balancing mask is active. */
+    uint16_t cellbal_flags = 0x00; /**< Bit mask of cells selected for balancing. */
 
-    bool discharge_active = false; /**< Discharging State*/
-    bool fault_active = false;
+    bool discharge_active = false; /**< Whether battery discharge is active. */
+    bool fault_active = false; /**< Whether any fault condition is active. */
     uint8_t fault_flags = 0x00;   /**< Fault and status bits such as overvoltage, undervoltage, or sensor faults. */
 
     uint8_t node_id;         /**< Identifier for this slave node on the AMS network. */
@@ -54,11 +57,11 @@ Bit 3: sequence_toggle
 #define CELLBAL_ODD_BIT             0x04
 #define SEQUENCE_TOGGLE_BIT         0x08
 
-//  CellBal Mask Bits
+/** @brief Cell-balancing masks for alternating cell groups. */
 #define CELLBAL_EVEN_MASK           0x1555 // 0001 0101 0101 0101
 #define CELLBAL_ODD_MASK            0x4AAA // 0100 1010 1010 1010
 
-//  Fault Flag Bits
+/** @brief Fault flag bit masks reported by the slave. */
 #define OVERVOLTAGE_FAULT_BIT       0x01
 #define UNDERVOLTAGE_FAULT_BIT      0x02
 #define OVERTEMPERATURE_FAULT_BIT   0x04

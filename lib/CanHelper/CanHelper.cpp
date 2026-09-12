@@ -1,3 +1,8 @@
+/**
+ * @file CanHelper.cpp
+ * @brief Implementation of AMS slave CAN communication.
+ */
+
 #include "CanHelper.hpp"
 
 CanHelper::CanHelper(AmsState &ams_, MCP2515 &mcp2515_, Calculator &calculator_)

@@ -1,8 +1,11 @@
 /**
  * @file BoardConfig.h
+ * @author Oscar Chan, Red Bird Racing (oscarckh0818@gmail.com)
+ * @date 2026-09-04
+ * @version 2.0.1
  * @brief Board-specific pin definitions for the AMS slave firmware.
  *
- * These macros map the firmware signals to the ATmega328P pins used on the PCB.
+ * @note These macros map the firmware signals to the ATmega328P pins used on the PCB.
  * Keep this file synchronized with the schematic and PCB.
  */
 

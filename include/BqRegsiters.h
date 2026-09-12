@@ -1,3 +1,8 @@
+/**
+ * @file BqRegsiters.h
+ * @brief BQ76940 register addresses and bit definitions.
+ */
+
 #ifndef BQREGISTERS_H
 #define BQREGISTERS_H
 

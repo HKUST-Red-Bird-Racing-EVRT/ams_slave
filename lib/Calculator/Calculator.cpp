@@ -1,3 +1,8 @@
+/**
+ * @file Calculator.cpp
+ * @brief Implementation of AMS measurement calculations and thresholds.
+ */
+
 #include "Calculator.hpp"
 
 Calculator::Calculator(AmsState &ams_)
