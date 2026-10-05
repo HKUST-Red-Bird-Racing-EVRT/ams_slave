@@ -85,14 +85,7 @@ void setup()
 	bool jp3 = digitalRead(JP3);
 	bool jp4 = digitalRead(JP4);
 
-	mcp2515.sendMessage(&test_frame); // 421
-	test_frame = {frame_counter++, 1, {0X69}};
-
 	can_helper.setNodeID(jp1, jp2, jp3, jp4);
-
-	// 423
-	mcp2515.sendMessage(&test_frame); // 422
-	test_frame = {frame_counter++, 1, {0X69}};
 
 	//	Read Data from Register ADCGAIN1, ADCGAIN2, ADCOFFSET
 	uint8_t adc_gain1_data = bms.getRegisterReadData(REGISTER_ADCGAIN1_ADDRESS);
