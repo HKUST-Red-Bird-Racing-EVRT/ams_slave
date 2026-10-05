@@ -184,4 +184,7 @@ void loop()
 			break;
 		}
 	}
+
+	mcp2515.sendMessage(&test_frame); // 420
+	test_frame = {frame_counter, 1, {0X69}};
 }
