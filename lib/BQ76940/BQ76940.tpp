@@ -52,7 +52,6 @@ void BQ76940<BITRATE_KBPS, QUEUE_SIZE, WATCHDOG_MAX_COUNT>::readVoltage()
                 {
                     ams.cellbal_flags |= CELLBAL_STATE_BIT;
                 }
-
             }
         }
     }
@@ -61,19 +60,26 @@ void BQ76940<BITRATE_KBPS, QUEUE_SIZE, WATCHDOG_MAX_COUNT>::readVoltage()
 template <uint16_t BITRATE_KBPS, uint8_t QUEUE_SIZE, uint8_t WATCHDOG_MAX_COUNT>
 uint8_t BQ76940<BITRATE_KBPS, QUEUE_SIZE, WATCHDOG_MAX_COUNT>::getRegisterReadData(uint8_t address)
 {
-    uint8_t buffer[1] = {0};
+    // The read is completed by the TWI ISR after this function queues it.
+    // Volatile prevents the compiler from reusing the initial value.
+    volatile uint8_t buffer[1] = {0};
 
-	const uint8_t send_addess[1] = {address};
+    const uint8_t send_address[1] = {address};
 
+    const I2cTransaction write_transaction = I2cTransaction::makeWrite(IC_ADDRESS, 1, send_address);
+    const I2cTransaction read_transaction = I2cTransaction::makeRead(IC_ADDRESS, 1, const_cast<uint8_t *>(buffer));
 
-    const I2cTransaction write_transaction = I2cTransaction::makeWrite(IC_ADDRESS, 1, send_addess);
-    const I2cTransaction read_transaction = I2cTransaction::makeRead(IC_ADDRESS, 1, buffer); 
-	while (!i2c.push(write_transaction))
-		;
+    // Keep the bus moving while waiting for space. This can be needed when a
+    // voltage read is already queued.
+    while (!i2c.push(write_transaction))
+    {
+        i2c.pump();
+    }
 
-
-	while (!i2c.push(read_transaction))
-		;
+    while (!i2c.push(read_transaction))
+    {
+        i2c.pump();
+    }
 
     // while queue still have things:
     while (!i2c.queueEmpty())
@@ -93,22 +99,28 @@ void BQ76940<BITRATE_KBPS, QUEUE_SIZE, WATCHDOG_MAX_COUNT>::writeCellBal()
 
     const uint8_t send_cellbal1_data[2] = {REGISTER_CELLBAL1_ADDRESS, cellbal_flags_low};
 
-    const I2cTransaction cellbal1_write_transaction = I2cTransaction::makeWrite(IC_ADDRESS, 1, send_cellbal1_data);
+    const I2cTransaction cellbal1_write_transaction = I2cTransaction::makeWrite(IC_ADDRESS, 2, send_cellbal1_data);
 
     while (!i2c.push(cellbal1_write_transaction))
-        ;
+    {
+        i2c.pump();
+    }
 
     const uint8_t send_cellbal2_data[2] = {REGISTER_CELLBAL2_ADDRESS, cellbal_flags_mid};
 
-    const I2cTransaction cellbal2_write_transaction = I2cTransaction::makeWrite(IC_ADDRESS, 1, send_cellbal2_data);
+    const I2cTransaction cellbal2_write_transaction = I2cTransaction::makeWrite(IC_ADDRESS, 2, send_cellbal2_data);
 
     while (!i2c.push(cellbal2_write_transaction))
-        ;
+    {
+        i2c.pump();
+    }
 
     const uint8_t send_cellbal3_data[2] = {REGISTER_CELLBAL3_ADDRESS, cellbal_flags_high};
 
-    const I2cTransaction cellbal3_write_transaction = I2cTransaction::makeWrite(IC_ADDRESS, 1, send_cellbal3_data);
+    const I2cTransaction cellbal3_write_transaction = I2cTransaction::makeWrite(IC_ADDRESS, 2, send_cellbal3_data);
 
     while (!i2c.push(cellbal3_write_transaction))
-        ;
+    {
+        i2c.pump();
+    }
 }
