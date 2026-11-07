@@ -42,11 +42,11 @@ public:
 
     uint16_t PANIC_MESSAGE_ADDRESS = 0x100;
     /** Master command base address; the node ID is added during setup. */
-    uint16_t MASTER_COMMAND_ADDRESS = 0x200;
+    uint16_t MASTER_COMMAND_ADDRESS = 0x240;
     /** Master request base address for the six response frames. */
-    uint16_t MASTER_REQUEST_ADDRESS = 0x210;
+    uint16_t MASTER_REQUEST_ADDRESS = 0x250;
     /** Slave response base address; the node ID is added during setup. */
-    uint16_t SLAVE_MESSAGE_ADDRESS = 0x300;
+    uint16_t SLAVE_MESSAGE_ADDRESS = 0x400;
 
     /**
      * @brief Creates a CAN helper.
