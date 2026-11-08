@@ -1,38 +1,65 @@
+/**
+ * @file Calculator.hpp
+ * @brief Public interface for AMS measurement calculations and thresholds.
+ */
+
 #ifndef CALCULATOR_HPP
 #define CALCULATOR_HPP
 
 #include <stdint.h>
 #include "AmsState.hpp"
 
+/** @brief Converts monitor readings and evaluates AMS safety thresholds. */
 class Calculator
 {
     public:
-        uint16_t VOLTAGE_OT = 900;  //	Overtemperature Voltage (millivolts)
-        uint16_t VOLTAGE_UT = 100;  //	Undertemperature Voltage (millivolts)
-        uint16_t VOLTAGE_OV = 4200; //	OverVoltage Voltage (millivolts)
-        uint16_t VOLTAGE_UV = 3500; //	UnderVoltage Voltage (millivolts)
-        uint16_t VOLTAGE_MIN = 0;       //  Min Voltage (millivolts) Will be defined later
-        uint16_t VOLTAGE_BALANCE = 0;   //  Cell Balancing Voltage (millivolts) Will be defined later
+        uint16_t VOLTAGE_OT = 900;  /**< Overtemperature threshold in millivolts. */
+        uint16_t VOLTAGE_UT = 100;  /**< Undertemperature threshold in millivolts. */
+        uint16_t VOLTAGE_OV = 4200; /**< Overvoltage threshold in millivolts. */
+        uint16_t VOLTAGE_UV = 3500; /**< Undervoltage threshold in millivolts. */
+        uint16_t VOLTAGE_MAX = 4250; /**< Maximum allowed cell voltage in millivolts. */
+        uint16_t VOLTAGE_MIN = 0; /**< Minimum cell voltage in millivolts. */
+        uint16_t VOLTAGE_BALANCE = 0; /**< Requested balancing voltage in millivolts. */
 
-        uint32_t TIME_CELLBAL = 30000; //  Cell Balancing Time (milliseconds)
+        uint32_t TIME_CELLBAL = 30000; /**< Cell-balancing duration in milliseconds. */
 
-        Calculator(AmsState &ams_state_);
+        /** @param ams_ State object used by the calculator. */
+        Calculator(AmsState &ams_);
+        /** @brief Prevents construction without an AMS state object. */
         Calculator() = delete;
+
+        /** @brief Sets ADC gain from the BQ76940 calibration registers. */
         void setAdcGain(uint8_t &byte1, uint8_t &byte2);
+
+        /** @brief Sets ADC offset from the BQ76940 calibration register. */
         void setAdcOffset(uint8_t &byte1);
-        //  void setRegisterVoltageThreshold(uint16_t voltage_ot, uint16_t voltage_ut, uint16_t voltage_ov, uint16_t voltage_uv);
+
+        /** @brief Converts a raw ADC voltage reading to millivolts. */
         uint16_t getRealVoltage(uint16_t &data);
+
+        /** @brief Tests a temperature reading against the overtemperature threshold. */
         bool isOverTemperature(uint16_t &data);
+
+        /** @brief Tests a temperature reading against the undertemperature threshold. */
         bool isUnderTemperature(uint16_t &data);
+
+        /** @brief Tests a cell voltage against the overvoltage threshold. */
         bool isOverVoltage(uint16_t &data);
+
+        /** @brief Tests a cell voltage against the undervoltage threshold. */
         bool isUnderVoltage(uint16_t &data);
-        bool isCellBalActivated(uint8_t &byte);
+
+        /** @brief Updates the AMS discharge state from a system-control register. */
+        void setDischargingState(uint8_t &byte);
+
+        /** @brief Calculates the lowest cell voltage currently stored in the AMS state. */
         void setVoltageMin();
-        void setCellBalFlagsOld();
-        void setCellBalFlags(uint16_t &data);
+
+        /** @brief Calculates cell-balancing flags using the configured thresholds. */
+        void setCellBalFlags();
 
     private:
-        AmsState &ams_state;
+        AmsState &ams;
         static constexpr uint16_t VOLTAGE_BOOT = 1000; // millivolts (temperature)
         static constexpr uint16_t VOLTAGE_PORA = 5000; // millivolts (voltage)
         static constexpr uint16_t VOLTAGE_SHUT = 3600; // millivolts
