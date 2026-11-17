@@ -38,7 +38,6 @@ CanHelper can_helper(ams, mcp2515, calculator);
 BQ76940<I2C_BITRATE_KBPS, I2C_QUEUE_SIZE, I2C_WATCHDOG_MAX_COUNT> bms(ams, i2c, calculator);
 
 uint32_t frame_counter = 0x420;
-can_frame test_frame = {frame_counter++, 1, {0X69}};
 can_frame rx_frame;
 
 ISR(TWI_vect)
@@ -50,16 +49,6 @@ void setup()
 {
 	mcp2515.reset();
 	mcp2515.setBitrate(CAN_500KBPS, MCP_20MHZ);
-
-	// Accept any ID from 0x200 to 0x2FF
-	mcp2515.setConfigMode();
-
-	// Mask: Check top 3 bits (0x700)
-	mcp2515.setFilterMask(MCP2515::MASK0, false, 0x700);
-
-	// Filter 0: Matches any ID where top 3 bits are 0b010 (0x200 - 0x2FF)
-	mcp2515.setFilter(MCP2515::RXF0, false, 0x200);
-
 	mcp2515.setNormalMode();
 
 	pinMode(ALERT, INPUT);
@@ -76,9 +65,6 @@ void setup()
 	pinMode(JP3, INPUT);
 	pinMode(JP4, INPUT);
 
-	mcp2515.sendMessage(&test_frame); // 420
-	test_frame = {frame_counter++, 1, {0X69}};
-
 	//	Set up Slave ID
 	bool jp1 = digitalRead(JP1);
 	bool jp2 = digitalRead(JP2);
@@ -91,9 +77,6 @@ void setup()
 	uint8_t adc_gain1_data = bms.getRegisterReadData(REGISTER_ADCGAIN1_ADDRESS);
 	uint8_t adc_gain2_data = bms.getRegisterReadData(REGISTER_ADCGAIN2_ADDRESS);
 	uint8_t adc_offset_data = bms.getRegisterReadData(REGISTER_ADCOFFSET_ADDRESS);
-
-	mcp2515.sendMessage(&test_frame); // 423
-	test_frame = {frame_counter++, 1, {0X69}};
 
 	calculator.setAdcGain(adc_gain1_data, adc_gain2_data);
 	calculator.setAdcOffset(adc_offset_data);
