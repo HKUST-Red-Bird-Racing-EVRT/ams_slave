@@ -113,6 +113,8 @@ public:
     /** @brief Handles the current TWI interrupt state. */
     inline void handleIsr() __attribute__((aligned(2)));
 
+    uint8_t nack_count = 0; /**< Count of NACKs received during the current transaction, used for debugging and error handling. */
+
 private:
     // =========================================================================
     // Typedefs

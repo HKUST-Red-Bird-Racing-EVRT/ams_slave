@@ -28,11 +28,12 @@ void BQ76940<BITRATE_KBPS, QUEUE_SIZE, WATCHDOG_MAX_COUNT>::readVoltage()
 
             uint8_t local_voltage_buffer[VOLTAGE_READ_COUNT];
             memcpy(local_voltage_buffer, voltage_buffer, VOLTAGE_READ_COUNT);
+            memcpy(ams.cell_voltages_buffer, voltage_buffer, VOLTAGE_READ_COUNT); //Delete Later
             uint8_t high_byte, low_byte;
 
             for (uint8_t i = 0; i < NUM_VC; ++i)
             {
-                if (i <= 12) // only read 13 cells, the 14th is not used
+                if (i < 13) // only read 13 cells, the 14th is not used
                 {
                     high_byte = local_voltage_buffer[i * 2];
                     low_byte = local_voltage_buffer[i * 2 + 1];

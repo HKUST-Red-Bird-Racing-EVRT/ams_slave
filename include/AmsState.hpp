@@ -24,6 +24,7 @@ constexpr uint8_t NUM_TS = 5; /**< Number of temperature sensors monitored by th
 
 struct AmsState
 {
+    uint8_t cell_voltages_buffer[30]; // Temp
     uint16_t cell_voltages[NUM_VC];   /**< Cell voltage readings for the cells monitored by this slave. */
     uint32_t message_timestamp = 0;       /**< Timestamp of the last valid message received from this slave. */
     uint16_t temperatures[NUM_TS]; /**< Temperature readings from local thermistors. */
@@ -42,6 +43,8 @@ struct AmsState
 
     uint8_t node_id;         /**< Identifier for this slave node on the AMS network. */
     uint8_t packet_counter;  /**< Counter for received or transmitted communication packets. */
+
+    bool debug_active = false; /**< Whether debug mode is active for this slave node. */
 };
 
 /*

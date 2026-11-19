@@ -46,7 +46,9 @@ public:
     /** Master request base address for the six response frames. */
     uint16_t MASTER_REQUEST_ADDRESS = 0x250;
     /** Slave response base address; the node ID is added during setup. */
-    uint16_t SLAVE_MESSAGE_ADDRESS = 0x400;
+    uint16_t SLAVE_MESSAGE_ADDRESS = 0x500;
+
+    uint16_t SLAVE_VOLTAGE_BUFFER_ADDRESS = 0x620;
 
     /**
      * @brief Creates a CAN helper.
@@ -64,6 +66,9 @@ public:
     /** @param index Response frame index. @return CAN address for that frame. */
     uint16_t getSlaveMessageAddress(uint8_t index);
 
+    /** @param index Voltage buffer index. @return CAN address for that buffer. */
+    uint16_t getSlaveVoltageBufferAddress(uint8_t index);
+
     /** @param address Master request address. @return Corresponding response index. */
     uint8_t getMessageIndexFromAddress(uint16_t address);
 
@@ -71,10 +76,13 @@ public:
     void sendMasterData(uint8_t index);
 
     /** @brief Sends the current fault flags to the master. */
-    void sendPanic();
+    void sendPanic(uint8_t index, uint16_t data);
 
     /** @brief Applies a command frame received from the master. */
     void packMasterData(can_frame &frame);
+
+    /** @brief Test Voltage Buffer Values */
+    void sendMasterVoltageBuffer();
 
 private:
     AmsState &ams;

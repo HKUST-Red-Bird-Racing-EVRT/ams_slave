@@ -268,6 +268,7 @@ inline void I2C<TEMPLATES>::handleIsr()
     case I2cStatus::AddressReadNack:
     case I2cStatus::DataSentNack:
     { // slave did not acknowledge address or data, or arbitration lost, restart transaction
+        nack_count += 1;
         TWCR = (1 << TWINT) | (1 << TWSTA) | (1 << TWEN) | (1 << TWIE);
         return;
     }

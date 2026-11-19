@@ -23,6 +23,7 @@ void CanHelper::setNodeID(bool &jp1, bool &jp2, bool &jp3, bool &jp4)
     PANIC_MESSAGE_ADDRESS += id;
     MASTER_COMMAND_ADDRESS += id;
     SLAVE_MESSAGE_ADDRESS += id;
+    SLAVE_VOLTAGE_BUFFER_ADDRESS += id;
 }
 
 uint16_t CanHelper::getSlaveMessageAddress(uint8_t index)
@@ -30,10 +31,14 @@ uint16_t CanHelper::getSlaveMessageAddress(uint8_t index)
     return SLAVE_MESSAGE_ADDRESS + index * 0x10;
 }
 
+uint16_t CanHelper::getSlaveVoltageBufferAddress(uint8_t index)
+{
+    return SLAVE_VOLTAGE_BUFFER_ADDRESS + index * 0x10;
+}
+
 uint8_t CanHelper::getMessageIndexFromAddress(uint16_t address)
 {
     return address - MASTER_REQUEST_ADDRESS;
-;
 }
 
 void CanHelper::sendMasterData(uint8_t index)
@@ -42,6 +47,7 @@ void CanHelper::sendMasterData(uint8_t index)
     {
     //  Send Frame 0
     case 0x00:
+    {
         can_frame send_voltage_frame_0 = {
             getSlaveMessageAddress(0),
             3,
@@ -52,9 +58,11 @@ void CanHelper::sendMasterData(uint8_t index)
 
         mcp2515.sendMessage(&send_voltage_frame_0);
         break;
+    }
 
     //  Send Frame 1
     case 0x01:
+    {
         can_frame send_voltage_frame_1 = {
             getSlaveMessageAddress(1),
             8,
@@ -70,9 +78,11 @@ void CanHelper::sendMasterData(uint8_t index)
 
         mcp2515.sendMessage(&send_voltage_frame_1);
         break;
+    }
 
     //  Send Frame 2
     case 0x02:
+    {
         can_frame send_voltage_frame_2 = {
             getSlaveMessageAddress(2),
             8,
@@ -88,9 +98,11 @@ void CanHelper::sendMasterData(uint8_t index)
 
         mcp2515.sendMessage(&send_voltage_frame_2);
         break;
+    }
 
     //  Send Frame 3
     case 0x03:
+    {
         can_frame send_voltage_frame_3 = {
             getSlaveMessageAddress(3),
             8,
@@ -106,9 +118,11 @@ void CanHelper::sendMasterData(uint8_t index)
 
         mcp2515.sendMessage(&send_voltage_frame_3);
         break;
+    }
 
     //  Send Frame 4
     case 0x04:
+    {
         can_frame send_voltage_frame_4 = {
             getSlaveMessageAddress(4),
             8,
@@ -124,9 +138,11 @@ void CanHelper::sendMasterData(uint8_t index)
 
         mcp2515.sendMessage(&send_voltage_frame_4);
         break;
+    }
 
     //  Send Frame 5
     case 0x05:
+    {
         can_frame send_voltage_frame_5 = {
             getSlaveMessageAddress(5),
             6,
@@ -140,15 +156,24 @@ void CanHelper::sendMasterData(uint8_t index)
 
         mcp2515.sendMessage(&send_voltage_frame_5);
         break;
+    }
 
     default:
         break;
     }
 }
 
-void CanHelper::sendPanic()
+void CanHelper::sendPanic(uint8_t index, uint16_t data)
 {
-    can_frame send_frame = {PANIC_MESSAGE_ADDRESS, 1, ams.fault_flags};
+    can_frame send_frame = {
+        PANIC_MESSAGE_ADDRESS, 
+        4, 
+        ams.fault_flags,
+        index,
+        data & 0xFF,
+        (data >> 8) & 0xFF
+    };
+
     mcp2515.sendMessage(&send_frame);
 }
 
@@ -166,7 +191,6 @@ void CanHelper::packMasterData(can_frame &frame)
         ams.command_flags |= CELLBAL_STATE_BIT;
         ams.is_balancevoltage_recieved = true;
         calculator.VOLTAGE_BALANCE = frame.data[1] | (frame.data[2] << 8);
-        calculator.setCellBalFlags();
         return;
     }
 
@@ -179,4 +203,67 @@ void CanHelper::packMasterData(can_frame &frame)
     }
 
     calculator.VOLTAGE_BALANCE = 0;
+}
+
+void CanHelper::sendMasterVoltageBuffer()
+{
+    can_frame send_voltage_buffer_frame_0 = {
+        getSlaveVoltageBufferAddress(0),
+        8,
+        ams.cell_voltages_buffer[0] & 0xFF,
+        ams.cell_voltages_buffer[1] & 0xFF,
+        ams.cell_voltages_buffer[2] & 0xFF,
+        ams.cell_voltages_buffer[3] & 0xFF,
+        ams.cell_voltages_buffer[4] & 0xFF,
+        ams.cell_voltages_buffer[5] & 0xFF,
+        ams.cell_voltages_buffer[6] & 0xFF,
+        ams.cell_voltages_buffer[7] & 0xFF,
+    };
+
+    mcp2515.sendMessage(&send_voltage_buffer_frame_0);
+
+    can_frame send_voltage_buffer_frame_1 = {
+        getSlaveVoltageBufferAddress(1),
+        8,
+        ams.cell_voltages_buffer[8] & 0xFF,
+        ams.cell_voltages_buffer[9] & 0xFF,
+        ams.cell_voltages_buffer[10] & 0xFF,
+        ams.cell_voltages_buffer[11] & 0xFF,
+        ams.cell_voltages_buffer[12] & 0xFF,
+        ams.cell_voltages_buffer[13] & 0xFF,
+        ams.cell_voltages_buffer[14] & 0xFF,
+        ams.cell_voltages_buffer[15] & 0xFF,
+    };
+
+    mcp2515.sendMessage(&send_voltage_buffer_frame_1);
+
+    can_frame send_voltage_buffer_frame_2 = {
+        getSlaveVoltageBufferAddress(2),
+        8,
+        ams.cell_voltages_buffer[16] & 0xFF,
+        ams.cell_voltages_buffer[17] & 0xFF,
+        ams.cell_voltages_buffer[18] & 0xFF,
+        ams.cell_voltages_buffer[19] & 0xFF,
+        ams.cell_voltages_buffer[20] & 0xFF,
+        ams.cell_voltages_buffer[21] & 0xFF,
+        ams.cell_voltages_buffer[22] & 0xFF,
+        ams.cell_voltages_buffer[23] & 0xFF,
+    };
+
+    mcp2515.sendMessage(&send_voltage_buffer_frame_2);
+
+    can_frame send_voltage_buffer_frame_3 = {
+        getSlaveVoltageBufferAddress(3),
+        8,
+        ams.cell_voltages_buffer[24] & 0xFF,
+        ams.cell_voltages_buffer[25] & 0xFF,
+        ams.cell_voltages_buffer[26] & 0xFF,
+        ams.cell_voltages_buffer[27] & 0xFF,
+        ams.cell_voltages_buffer[28] & 0xFF,
+        ams.cell_voltages_buffer[29] & 0xFF,
+        (calculator.ADC_GAIN - 365) & 0xFF,
+        calculator.ADC_OFFSET & 0xFF,
+    };
+
+    mcp2515.sendMessage(&send_voltage_buffer_frame_3);
 }

@@ -58,18 +58,18 @@ class Calculator
         /** @brief Calculates cell-balancing flags using the configured thresholds. */
         void setCellBalFlags();
 
+        uint16_t ADC_GAIN = 0;
+        int8_t ADC_OFFSET = 0;
     private:
         AmsState &ams;
         static constexpr uint16_t VOLTAGE_BOOT = 1000; // millivolts (temperature)
         static constexpr uint16_t VOLTAGE_PORA = 5000; // millivolts (voltage)
         static constexpr uint16_t VOLTAGE_SHUT = 3600; // millivolts
+
         static constexpr uint16_t VOLTAGE_START = 3800; //  Minimum Voltage for Cell Balancing
         static constexpr uint16_t VOLTAGE_DELTA = 30;
 
         static constexpr uint16_t TIME_BOOT = 3; // milliseconds
-
-        uint16_t ADC_GAIN = 0;
-        int8_t ADC_OFFSET = 0;
 
 
 };

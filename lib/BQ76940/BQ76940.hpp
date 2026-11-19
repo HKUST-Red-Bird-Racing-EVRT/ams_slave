@@ -48,20 +48,22 @@ class BQ76940
 
         /** @brief Writes the current cell-balancing flags to the device. */
         void writeCellBal();
-
-    private:
+        
+        private:
         AmsState &ams;
         I2C<BITRATE_KBPS, QUEUE_SIZE, WATCHDOG_MAX_COUNT> &i2c;
         Calculator &calculator;
         static constexpr uint8_t BQ76940_I2C_ADDRESS = IC_ADDRESS; /**< I2C address for the BQ76940 device. */
-
+        
         static constexpr uint8_t BQ76940_VOLTAGE_REGISTER = REGISTER_VC1_HI_ADDRESS; /**< Register address for reading cell voltages. */
         static constexpr uint8_t VOLTAGE_READ_COUNT = 30; /**< Number of bytes to read voltage data for. */
-        uint8_t voltage_buffer[VOLTAGE_READ_COUNT]; /**< Buffer to hold raw voltage data read from the BQ76940. Each cell voltage is 2 bytes. */
         uint32_t booton_timestamp = 0; /**< Timestamp when the device was powered on, used for boot timing. */
-
+        
         const I2cTransaction voltage_write_transaction = I2cTransaction::makeWrite(BQ76940_I2C_ADDRESS, 1, &BQ76940_VOLTAGE_REGISTER);
         const I2cTransaction voltage_read_transaction = I2cTransaction::makeRead(BQ76940_I2C_ADDRESS, VOLTAGE_READ_COUNT, voltage_buffer);
+        
+        public:
+        uint8_t voltage_buffer[VOLTAGE_READ_COUNT]; /**< Buffer to hold raw voltage data read from the BQ76940. Each cell voltage is 2 bytes. */
 };
 
 #include "BQ76940.tpp"

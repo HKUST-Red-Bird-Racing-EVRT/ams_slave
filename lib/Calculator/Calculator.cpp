@@ -18,6 +18,8 @@ void Calculator::setAdcGain(uint8_t &byte1, uint8_t &byte2)
     uint8_t upper_bits = (byte1 & REGISTER_ADCGAIN1_MASK) << 1;
     uint8_t lower_bits = (byte2 & REGISTER_ADCGAIN2_MASK) >> 5;
     ADC_GAIN = 365 + (upper_bits | lower_bits);
+
+    ADC_GAIN = (static_cast<uint32_t>(ADC_GAIN) * 65536 + 500) / 1000; // Convert to millivolts
 }
 
 void Calculator::setAdcOffset(uint8_t &byte1)
@@ -37,7 +39,7 @@ void Calculator::setRegisterVoltageThreshold(uint16_t voltage_ot, uint16_t volta
 
 uint16_t Calculator::getRealVoltage(uint16_t &data)
 {
-    return (data * ADC_GAIN / 1000 + ADC_OFFSET);
+    return (static_cast<uint32_t>(data) * ADC_GAIN / 65536 + ADC_OFFSET);
 }
 
 bool Calculator::isOverTemperature(uint16_t &data)
@@ -67,6 +69,10 @@ void Calculator::setDischargingState(uint8_t &byte)
     if (byte & REGISTER_SYS_CTRL2_DSG_ON)
     {
         ams.discharge_active = true;
+    }
+    else
+    {
+        ams.discharge_active = false;
     }
 }
 
